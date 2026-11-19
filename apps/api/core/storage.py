@@ -75,3 +75,11 @@ async def ensure_bucket_exists() -> None:
             client.create_bucket(Bucket=settings.s3_bucket)
 
     await loop.run_in_executor(None, _create)
+
+
+async def download_file(key: str) -> bytes:
+    def download() -> bytes:
+        with _make_client().get_object(Bucket=settings.s3_bucket, Key=key)["Body"] as stream:
+            return stream.read()
+
+    return await asyncio.to_thread(download)

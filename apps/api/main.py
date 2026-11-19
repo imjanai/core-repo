@@ -7,13 +7,15 @@ of via Docker Compose.
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from apps.shared.config import settings
 from apps.api.core.database import engine, Base
-from apps.api.routers import projects, materials, corrections, health, pipeline
+from apps.api.routers import projects, materials, corrections, health, pipeline, review
 
 
 @asynccontextmanager
@@ -49,3 +51,10 @@ app.include_router(projects.router, prefix="/projects", tags=["projects"])
 app.include_router(materials.router, prefix="/projects", tags=["materials"])
 app.include_router(corrections.router, prefix="/projects", tags=["corrections"])
 app.include_router(pipeline.router, prefix="/projects", tags=["pipeline"])
+
+app.include_router(review.router, tags=["review"])
+app.mount(
+    "/review",
+    StaticFiles(directory=Path(__file__).resolve().parents[1] / "review" / "static", html=True),
+    name="review",
+)

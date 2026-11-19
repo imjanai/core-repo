@@ -11,6 +11,7 @@ from ml.eval.metrics import (
     compute_level3_outcome,
     compute_level4_workflow,
 )
+from ml.eval.run_eval import load_golden_pairs
 from packages.schema import MaterialLine, Project, Symbol, SymbolType
 
 
@@ -69,3 +70,15 @@ def test_4_tier_metrics_computation():
     assert "Niveau 2" in md
     assert "Niveau 3" in md
     assert "Niveau 4" in md
+
+
+def test_golden_set_preserves_dxf_filename(tmp_path):
+    drawings = tmp_path / "tekeningen"
+    answers = tmp_path / "antwoorden"
+    drawings.mkdir()
+    answers.mkdir()
+    (drawings / "plan-01.dxf").write_bytes(b"drawing")
+    expected = Project(name="plan-01")
+    (answers / "plan-01.json").write_text(expected.model_dump_json(), encoding="utf-8")
+
+    assert load_golden_pairs(tmp_path) == [(b"drawing", expected, "plan-01.dxf")]

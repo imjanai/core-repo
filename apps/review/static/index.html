@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DXF-review | imJan</title>
+  <link rel="stylesheet" href="./review.css">
+  <script type="module" src="./review.js"></script>
+</head>
+<body>
+  <header class="top"><strong class="brand">imJan<span>.</span></strong><span>Werkruimte / DXF-review</span></header>
+  <main>
+    <section class="intro">
+      <div><h1>Tekening beoordelen</h1><p id="project-name">Upload een DXF om de elektrische symbolen te controleren.</p></div>
+      <form id="upload">
+        <label class="upload-label" for="file">DXF-bestand</label>
+        <div class="row"><input id="file" type="file" accept=".dxf" required><button class="primary" id="start">Analyse starten</button></div>
+      </form>
+    </section>
+    <p id="status" role="status" hidden></p>
+    <section id="workspace" class="workspace" hidden>
+      <div class="panel drawing">
+        <header class="panel-head">
+          <h2>Tekening</h2>
+          <div class="row tools">
+            <button id="zoom-out" aria-label="Uitzoomen">−</button><button id="zoom-in" aria-label="Inzoomen">+</button><button id="fit">Passend</button>
+          </div>
+        </header>
+        <canvas id="drawing" aria-label="DXF-tekening met elektrische symbolen"></canvas>
+        <footer id="drawing-note">Sleep om te verschuiven. Scroll om in te zoomen.</footer>
+      </div>
+      <aside class="panel inspector">
+        <header class="panel-head"><h2>Symbolen <span id="count"></span></h2><button id="add">Toevoegen</button></header>
+        <div class="field list-field"><label for="symbols">Selecteer een symbool</label><select id="symbols" size="6"></select></div>
+        <form id="edit" hidden>
+          <h3 id="edit-title"></h3>
+          <p id="provenance"></p>
+          <div class="field"><label for="type">Type</label><select id="type" required></select></div>
+          <div class="coordinates">
+            <div class="field"><label for="x">X (mm)</label><input id="x" type="number" step="any" required></div>
+            <div class="field"><label for="y">Y (mm)</label><input id="y" type="number" step="any" required></div>
+          </div>
+          <div class="row actions"><button class="primary" id="save">Opslaan</button><button type="button" id="cancel" hidden>Annuleren</button><button type="button" id="remove" class="danger">Verwijderen</button></div>
+        </form>
+      </aside>
+    </section>
+    <section id="materials" class="panel materials" hidden>
+      <header class="panel-head"><div><h2>Materiaallijst</h2><p id="total"></p></div><div class="row"><a id="xlsx">Excel</a><a id="pdf">PDF</a></div></header>
+      <div class="table-scroll"><table><thead><tr><th>Omschrijving</th><th>Aantal</th><th>Eenheid</th><th class="number">Totaal</th></tr></thead><tbody id="items"></tbody></table></div>
+    </section>
+  </main>
+</body>
+</html>

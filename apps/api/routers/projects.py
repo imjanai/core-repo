@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from pydantic import BaseModel
-from sqlalchemy import select, func, delete
+from sqlalchemy import select, func, delete, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.shared.config import settings
@@ -118,7 +118,12 @@ async def create_project(
     # Start de Celery-pipelinetaak asynchroon.
     task = run_pipeline.delay(project_id, s3_key, file_type.value)
     row.task_id = task.id
-    row.status = ProjectStatus.PROCESSING.value
+    # A fast worker may already have set a terminal status after publication.
+    await db.execute(
+        update(ProjectRow)
+        .where(ProjectRow.id == project_id, ProjectRow.status == ProjectStatus.UPLOADED.value)
+        .values(status=ProjectStatus.PROCESSING.value)
+    )
     await db.commit()
     await db.refresh(row)
 

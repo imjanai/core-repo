@@ -8,13 +8,13 @@ GET  /projects/{id}/corrections   — geeft alle correcties voor een project
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from sqlalchemy import select
+from pydantic import BaseModel, FiniteFloat
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.database import get_db
+from apps.api.review_projects import project_corrections, reviewed_symbols
 from apps.shared.models import CorrectionRow, ProjectRow
-from packages.schema import Correction, CorrectionAction, SymbolType
+from packages.schema import CorrectionAction, ProjectStatus, SymbolType
 
 router = APIRouter()
 
@@ -23,8 +23,8 @@ class CorrectionCreate(BaseModel):
     action: CorrectionAction
     symbol_id: str | None = None
     new_type: SymbolType | None = None
-    new_x: float | None = None
-    new_y: float | None = None
+    new_x: FiniteFloat | None = None
+    new_y: FiniteFloat | None = None
     comment: str = ""
 
 
@@ -63,6 +63,7 @@ async def add_correction(
     project_id: str,
     body: CorrectionCreate,
     db: Annotated[AsyncSession, Depends(get_db)],
+    review: bool = False,
 ):
     """
     Slaat een correctie van de elektricien op als trainingsdata.
@@ -72,7 +73,7 @@ async def add_correction(
     - `action=change_type` — type aanpassen (geef symbol_id + new_type)
     - `action=move`        — positie aanpassen (geef symbol_id + new_x/y)
     """
-    project = await db.get(ProjectRow, project_id)
+    project = await db.get(ProjectRow, project_id, with_for_update=review)
     if not project:
         raise HTTPException(status_code=404, detail="Project niet gevonden.")
 
@@ -93,6 +94,18 @@ async def add_correction(
             status_code=422,
             detail=f"Bij action={body.action} is symbol_id verplicht.",
         )
+
+    if review:
+        if project.status != ProjectStatus.DONE.value:
+            raise HTTPException(status_code=409, detail="De analyse is nog niet klaar.")
+        if body.action == CorrectionAction.CHANGE_TYPE and body.new_type is None:
+            raise HTTPException(status_code=422, detail="Kies een nieuw symbooltype.")
+        if body.action == CorrectionAction.MOVE and (body.new_x is None or body.new_y is None):
+            raise HTTPException(status_code=422, detail="Vul beide coördinaten in.")
+        if body.action != CorrectionAction.ADD:
+            symbols = await reviewed_symbols(db, project)
+            if all(symbol.id != body.symbol_id for symbol in symbols):
+                raise HTTPException(status_code=409, detail="Dit symbool bestaat niet meer.")
 
     row = CorrectionRow(
         project_id=project_id,
@@ -119,10 +132,4 @@ async def list_corrections(
     if not project:
         raise HTTPException(status_code=404, detail="Project niet gevonden.")
 
-    result = await db.execute(
-        select(CorrectionRow)
-        .where(CorrectionRow.project_id == project_id)
-        .order_by(CorrectionRow.created_at.asc())
-    )
-    rows = result.scalars().all()
-    return [_row_to_response(r) for r in rows]
+    return [_row_to_response(row) for row in await project_corrections(db, project_id)]

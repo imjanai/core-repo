@@ -280,3 +280,61 @@ async def test_resume_mislukte_run_wordt_opnieuw_gepland(mock_task, client):
     assert body["task_id"] == "celery-task-42"
     assert body["state"] == "queued"
     mock_task.delay.assert_called_once_with(run_id)
+
+@pytest.mark.asyncio
+async def test_review_corrections_update_symbol_overlay_and_download(client):
+    import ezdxf
+    from openpyxl import load_workbook
+
+    from apps.shared.models import ProjectRow
+    from packages.schema import Symbol, SymbolType
+
+    original = Symbol(type=SymbolType.WANDCONTACTDOOS, x=100, y=200)
+    project_id = str(uuid.uuid4())
+    async with TestSessionLocal() as db:
+        db.add(ProjectRow(
+            id=project_id, status=ProjectStatus.DONE.value, file_type="dxf",
+            s3_key="uploads/plan.dxf", symbols=[original.model_dump(mode="json")],
+        ))
+        await db.commit()
+
+    project_url = f"/projects/{project_id}"
+    asset = await client.get("/review/")
+    assert asset.status_code == 200
+    assert "Tekening beoordelen" in asset.text
+
+    doc = ezdxf.new(units=4)
+    doc.modelspace().add_line((0, 0), (1000, 500))
+    dxf = io.StringIO()
+    doc.write(dxf)
+    with patch("apps.api.routers.review.download_file", return_value=dxf.getvalue().encode()):
+        drawing = await client.get(f"{project_url}/review/drawing")
+    assert drawing.status_code == 200
+    assert drawing.json() == {"paths": [[[0, 0], [1000, 500]]], "truncated": False}
+
+    response = await client.post(f"{project_url}/corrections?review=true", json={
+        "action": "change_type", "symbol_id": original.id,
+        "new_type": SymbolType.SCHAKELAAR.value, "new_x": 123, "new_y": 456,
+    })
+    assert response.status_code == 201, response.text
+
+    overlay = await client.get(f"{project_url}/review/symbols")
+    assert overlay.status_code == 200
+    assert overlay.json()[0]["type"] == SymbolType.SCHAKELAAR.value
+    assert overlay.json()[0]["x"] == 123
+
+    raw = await client.get(project_url)
+    assert raw.json()["symbols"][0]["type"] == SymbolType.WANDCONTACTDOOS.value
+
+    materials = await client.get(f"{project_url}/materials?review=true")
+    assert materials.status_code == 200
+    items = materials.json()["items"]
+    assert any(item["symbol_type"] == SymbolType.SCHAKELAAR.value for item in items)
+    assert all(item["symbol_type"] != SymbolType.WANDCONTACTDOOS.value for item in items)
+
+    excel = await client.get(f"{project_url}/materials?review=true&format=xlsx")
+    assert excel.status_code == 200
+    sheet = load_workbook(io.BytesIO(excel.content), read_only=True).active
+    assert [row[0] for row in sheet.iter_rows(min_row=2, values_only=True)] == [
+        item["description"] for item in items
+    ]

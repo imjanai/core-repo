@@ -53,7 +53,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def load_golden_pairs(dataset_path: str | Path) -> list[tuple[bytes, Project, str]]:
-    """Loads (image_bytes, ground_truth_project, sample_id) tuples from golden set."""
+    """Load drawing bytes, expected projects, and original filenames."""
     p = Path(dataset_path)
     img_dir = p / "tekeningen"
     ans_dir = p / "antwoorden"
@@ -73,7 +73,7 @@ def load_golden_pairs(dataset_path: str | Path) -> list[tuple[bytes, Project, st
             img_bytes = img_file.read_bytes()
             gt_dict = json.loads(ans_file.read_text(encoding="utf-8"))
             gt_project = Project.model_validate(gt_dict)
-            pairs.append((img_bytes, gt_project, sample_id))
+            pairs.append((img_bytes, gt_project, img_file.name))
         except Exception as exc:
             logger.warning("Failed to load sample %s: %s", sample_id, exc)
 
@@ -106,9 +106,9 @@ def evaluate(
     ground_truths: list[Project] = []
 
     logger.info("Evaluating %d golden test drawings...", len(golden_pairs))
-    for img_bytes, gt_proj, sample_id in golden_pairs:
+    for img_bytes, gt_proj, filename in golden_pairs:
         # Run pipeline
-        pred_proj = run_pipeline_on_image(img_bytes, f"{sample_id}.png", vlm_enabled=vlm_enabled)
+        pred_proj = run_pipeline_on_image(img_bytes, filename, vlm_enabled=vlm_enabled)
         predictions.append(pred_proj)
         ground_truths.append(gt_proj)
 
@@ -189,11 +189,14 @@ def main() -> int:
             config = yaml.safe_load(f)
 
     golden_pairs = load_golden_pairs(args.dataset)
-    if not golden_pairs:
-        logger.warning("No golden pairs loaded. Generating synthetic benchmark benchmark...")
+    if not golden_pairs and Path(args.dataset).resolve() == Path("ml/data/golden").resolve():
+        logger.warning("No golden pairs loaded. Generating synthetic benchmark...")
         from ml.data.synthetic import write_synthetic_dataset
         write_synthetic_dataset(output_dir="ml/data", num_golden=4)
         golden_pairs = load_golden_pairs(args.dataset)
+    if not golden_pairs:
+        logger.error("No valid drawing and answer pairs found in %s", args.dataset)
+        return 1
 
     report = evaluate(args.model, golden_pairs, config, vlm_enabled=args.enable_vlm)
     md_content = report.to_markdown()
