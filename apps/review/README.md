@@ -53,3 +53,19 @@ Bij **Analysestappen** zie je welke stappen klaar, overgeslagen of mislukt
 zijn, met eventuele foutmeldingen. Gebruik **Analyse hervatten** bij een
 mislukte run met een opgeslagen checkpoint. De worker pakt de analyse op
 vanaf dat checkpoint en gebruikt de bestaande upload.
+
+## Offertes en installatie
+
+Gebruik **Offertes** om prijzen, arbeidsuren, uurtarief en vaste kosten
+in te vullen. Opslaan maakt een aparte, onveranderlijke offerteversie.
+Download die als PDF, of vergelijk twee versies om een wijzigingsstaat op
+basis van hun opgeslagen bedragen te downloaden. Als je een revisie hebt
+geopend, zijn de offertes van de vorige tekening ook beschikbaar als basis.
+Alle bedragen zijn exclusief btw.
+
+De **Installatiechecklist** gebruikt de beoordeelde symbolen. Groepeer op
+ruimte of kring en toon desgewenst alleen openstaande punten. Afvinken
+wordt per project opgeslagen.
+
+Pas op een bestaande database eerst migratie `0003` toe met
+`uv run alembic upgrade head`.

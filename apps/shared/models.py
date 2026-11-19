@@ -160,3 +160,19 @@ class CorrectionRow(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_now
     )
+
+
+class QuoteRow(Base):
+    __tablename__ = "project_quotes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    project_id: Mapped[str] = mapped_column(String(36), index=True)
+    snapshot: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class InstallationCheckRow(Base):
+    __tablename__ = "installation_checks"
+
+    project_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    symbol_id: Mapped[str] = mapped_column(String(36), primary_key=True)

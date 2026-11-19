@@ -64,3 +64,12 @@ th { font-size: .875rem; color: var(--muted); }
 #library-search { align-items: end; margin-bottom: .7rem; }
 #library-status:empty { display: none; }
 .library button[aria-pressed="true"] { background: var(--accent); color: white; }
+
+.quote-fields { align-items: end; margin-bottom: .7rem; }
+#quote-form button { margin-top: .65rem; }
+#quote-materials input { width: 8rem; }
+#quote-materials td:last-child, #installation-items label { text-align: left; }
+#installation-items h3 { margin: 1rem 0 .4rem; }
+.installation-row { display: flex; justify-content: space-between; gap: .7rem; padding: .45rem 0; border-bottom: 1px solid var(--border); }
+.installation-row label { font-weight: 400; margin: 0; }
+.installation-row input { margin-right: .45rem; }

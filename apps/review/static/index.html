@@ -109,6 +109,46 @@
       <header class="panel-head"><div><h2>Materiaallijst</h2><p id="total"></p></div><div class="row"><a id="xlsx">Excel</a><a id="pdf">PDF</a></div></header>
       <div class="table-scroll"><table><thead><tr><th>Omschrijving</th><th>Aantal</th><th>Eenheid</th><th class="number">Totaal</th></tr></thead><tbody id="items"></tbody></table></div>
     </section>
+    <details id="quotes" class="panel library" hidden>
+      <summary>Offertes</summary>
+      <form class="panel-body" id="quote-form">
+        <div class="row quote-fields">
+          <div class="field"><label for="quote-title">Naam of versie</label><input id="quote-title" required maxlength="120"></div>
+          <div class="field"><label for="quote-customer">Klant</label><input id="quote-customer" maxlength="255"></div>
+          <div class="field"><label for="quote-hours">Arbeidsuren</label><input id="quote-hours" type="number" min="0" max="100000" step=".01" value="0" required></div>
+          <div class="field"><label for="quote-rate">Uurtarief (€)</label><input id="quote-rate" type="number" min="0" max="1000000000" step=".01" value="0" required></div>
+          <div class="field"><label for="quote-fee">Vaste kosten (€)</label><input id="quote-fee" type="number" min="0" max="1000000000" step=".01" value="0" required></div>
+        </div>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Materiaal</th><th>Aantal</th><th>Eenheidsprijs (€)</th></tr></thead>
+          <tbody id="quote-materials"></tbody>
+        </table></div>
+        <p id="quote-total"></p>
+        <p id="quote-status" role="status"></p>
+        <button class="primary" id="quote-save">Offerteversie opslaan</button>
+      </form>
+      <div class="panel-body">
+        <h3>Opgeslagen offertes</h3>
+        <ul id="quote-versions" class="change-list"></ul>
+        <p id="quote-empty">Er zijn nog geen versies.</p>
+        <form id="quote-compare" class="row quote-fields" hidden>
+          <div class="field"><label for="quote-baseline">Vorige offerte</label><select id="quote-baseline" required></select></div>
+          <div class="field"><label for="quote-current">Nieuwe offerte</label><select id="quote-current" required></select></div>
+          <button>Wijzigingsstaat downloaden</button>
+        </form>
+      </div>
+    </details>
+    <details id="installation" class="panel library" hidden>
+      <summary>Installatiechecklist <span id="installation-progress"></span></summary>
+      <div class="panel-body">
+        <div class="row">
+          <div class="field"><label for="installation-group">Groeperen op</label><select id="installation-group"><option value="room">Ruimte</option><option value="circuit">Kring</option></select></div>
+          <label><input id="installation-open-only" type="checkbox"> Alleen openstaande punten</label>
+        </div>
+        <p id="installation-status" role="status"></p>
+        <div id="installation-items"></div>
+      </div>
+    </details>
     <section id="purchasing" class="panel materials" hidden>
       <header class="panel-head"><div><h2>Leveranciersbestelling</h2><p>SKU's, verpakkingen en prijzen worden in deze browser bewaard.</p></div></header>
       <form class="panel-body">

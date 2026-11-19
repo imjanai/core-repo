@@ -1,11 +1,15 @@
 import { DrawingViewer } from "./drawing.js";
 import { mountLibrary } from "./library.js";
+import { Installation } from "./installation.js";
 import { Purchasing } from "./purchasing.js";
+import { Quotes } from "./quotes.js";
 import { renderComparison } from "./revision.js";
 
 const $ = id => document.getElementById(id);
 const state = { project: null, previousId: null, symbols: [], selected: null, placing: false, busy: false };
 const purchasing = new Purchasing($("purchasing"));
+const quotes = new Quotes($("quotes"), request);
+const installation = new Installation($("installation"), request, inspectChange);
 const money = new Intl.NumberFormat("nl-BE", { style: "currency", currency: "EUR" });
 const viewer = new DrawingViewer($("drawing"), {
   select: selectSymbol,
@@ -137,7 +141,11 @@ async function refreshReview() {
   selectSymbol(symbols.some(symbol => symbol.id === state.selected) ? state.selected : null);
   renderMaterials(materials);
   purchasing.render(materials.items);
-  await Promise.all([refreshComparison(), refreshHistory()]);
+  await Promise.all([
+    refreshComparison(), refreshHistory(),
+    quotes.load(state.project.id, state.previousId),
+    installation.load(state.project.id),
+  ]);
 }
 
 async function refreshHistory() {
@@ -226,6 +234,8 @@ async function openProject(project, previousId = null, taskId = null) {
   $("carry-status").textContent = "";
   $("carry-review").replaceChildren();
   $("purchasing").hidden = true;
+  $("quotes").hidden = true;
+  $("installation").hidden = true;
   $("project-name").textContent = project.name || "DXF-project";
   $("workspace").hidden = true;
   $("materials").hidden = true;

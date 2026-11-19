@@ -15,11 +15,10 @@ from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.database import get_db
-from apps.api.review_projects import reviewed_symbols
+from apps.api.review_projects import reviewed_materials
 from apps.shared.models import ProjectRow
-from packages.materials import compute_materials
 from packages.materials.exports import build_materials_pdf, build_materials_xlsx
-from packages.schema import MaterialLine, Project, ProjectStatus
+from packages.schema import MaterialLine, ProjectStatus
 
 router = APIRouter()
 
@@ -55,11 +54,7 @@ async def get_materials(
         )
 
     if review:
-        project = Project(
-            id=row.id, name=row.name, symbols=await reviewed_symbols(db, row),
-            rooms=row.rooms or [], meta=row.meta or {}, scale=row.scale,
-        )
-        items = compute_materials(project).materials
+        items = await reviewed_materials(db, row)
     else:
         items = [MaterialLine(**m) for m in (row.materials or [])]
     total = (

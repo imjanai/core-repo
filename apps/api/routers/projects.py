@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.shared.config import settings
 from apps.api.core.database import get_db
 from apps.api.core.storage import upload_file, generate_presigned_url
-from apps.shared.models import ProjectRow
+from apps.shared.models import InstallationCheckRow, ProjectRow
 from apps.api.pipeline_dispatch import run_pipeline
 from packages.schema import FileType, Project, ProjectStatus
 
@@ -219,8 +219,9 @@ async def delete_project(
     db: Annotated[AsyncSession, Depends(get_db)],
 ):
     """Verwijdert een project (inclusief DB-record; S3-object blijft voor audit)."""
-    row = await db.get(ProjectRow, project_id)
+    row = await db.get(ProjectRow, project_id, with_for_update=True)
     if not row:
         raise HTTPException(status_code=404, detail="Project niet gevonden.")
+    await db.execute(delete(InstallationCheckRow).where(InstallationCheckRow.project_id == project_id))
     await db.delete(row)
     await db.commit()

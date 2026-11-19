@@ -15,7 +15,7 @@ from fastapi.staticfiles import StaticFiles
 
 from apps.shared.config import settings
 from apps.api.core.database import engine, Base
-from apps.api.routers import projects, materials, corrections, health, pipeline, review, revisions
+from apps.api.routers import projects, materials, corrections, health, installation, pipeline, quotes, review, revisions
 
 
 @asynccontextmanager
@@ -54,6 +54,8 @@ app.include_router(pipeline.router, prefix="/projects", tags=["pipeline"])
 
 app.include_router(review.router, tags=["review"])
 app.include_router(revisions.router, tags=["review"])
+app.include_router(quotes.router, tags=["quotes"])
+app.include_router(installation.router, tags=["installation"])
 app.mount(
     "/review",
     StaticFiles(directory=Path(__file__).resolve().parents[1] / "review" / "static", html=True),

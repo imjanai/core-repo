@@ -405,3 +405,84 @@ async def test_library_filters_literal_names_and_does_not_sign_downloads(client)
     assert result.json()["total"] == 1
     assert [project["name"] for project in result.json()["items"]] == ["Plan_100%.dxf"]
     sign.assert_not_awaited()
+
+@pytest.mark.asyncio
+async def test_quote_versions_keep_prices_and_export_change_order(client):
+    from apps.shared.models import ProjectRow
+    from packages.materials.quote_pdf import _quote_html
+    from packages.materials.quotes import quote_lines
+    from packages.schema import Symbol, SymbolType
+
+    project_id = str(uuid.uuid4())
+    symbol = Symbol(type=SymbolType.WANDCONTACTDOOS, x=0, y=0)
+    async with TestSessionLocal() as db:
+        db.add(ProjectRow(
+            id=project_id, name="Herziening.dxf", status=ProjectStatus.DONE.value,
+            symbols=[symbol.model_dump(mode="json")],
+        ))
+        await db.commit()
+
+    quote_url = f"/projects/{project_id}/quotes"
+    draft_response = await client.get(f"{quote_url}/draft")
+    assert draft_response.status_code == 200, draft_response.text
+    draft = draft_response.json()
+    assert any(item["description"].startswith("Wandcontactdoos") for item in draft)
+    for item in draft:
+        item["unit_price"] = 100
+    first = {
+        "title": "Versie 1", "customer": "Klant <test>",
+        "materials": draft, "labour_hours": "1.25", "hourly_rate": 5000, "fixed_fee": 250,
+    }
+    saved = await client.post(quote_url, json=first)
+    assert saved.status_code == 201, saved.text
+
+    stale = {**first, "materials": [dict(draft[0], quantity=draft[0]["quantity"] + 1), *draft[1:]]}
+    assert (await client.post(quote_url, json=stale)).status_code == 409
+    updated = await client.post(quote_url, json={
+        **first, "title": "Versie 2", "labour_hours": "2.25",
+        "materials": [dict(draft[0], unit_price=200), *draft[1:]],
+    })
+    assert updated.status_code == 201, updated.text
+    assert len((await client.get(quote_url)).json()) == 2
+
+    with patch("apps.api.routers.quotes.render_quote_pdf", return_value=b"%PDF") as render:
+        pdf = await client.get(f"/quotes/{updated.json()['id']}/pdf", params={"baseline": saved.json()["id"]})
+    assert pdf.status_code == 200 and pdf.headers["content-type"] == "application/pdf"
+    newer, older = render.call_args.args
+    assert older.materials[0].unit_price == 100
+    assert newer.materials[0].unit_price == 200
+    assert sum(line.amount for line in quote_lines(newer).values()) - sum(
+        line.amount for line in quote_lines(older).values()
+    ) == 5000 + 100 * draft[0]["quantity"]
+    html = _quote_html(newer, older)
+    assert "Klant &lt;test&gt;" in html and "Netto prijsverschil" in html
+
+
+@pytest.mark.asyncio
+async def test_installation_checklist_tracks_reviewed_symbols(client):
+    from apps.shared.models import ProjectRow
+    from packages.schema import Room, Symbol, SymbolType
+
+    project_id = str(uuid.uuid4())
+    room = Room(name="Keuken")
+    symbol = Symbol(type=SymbolType.WANDCONTACTDOOS, x=0, y=0, room_id=room.id, circuit="G1")
+    async with TestSessionLocal() as db:
+        db.add(ProjectRow(
+            id=project_id, status=ProjectStatus.DONE.value, symbols=[symbol.model_dump(mode="json")],
+            rooms=[room.model_dump(mode="json")],
+        ))
+        await db.commit()
+
+    url = f"/projects/{project_id}/installation"
+    items = (await client.get(url)).json()
+    assert items[0]["room"] == "Keuken" and items[0]["symbol"]["circuit"] == "G1"
+    for installed in (True, True, False):
+        result = await client.put(f"{url}/{symbol.id}", json={"installed": installed})
+        assert result.status_code == 204, result.text
+        assert (await client.get(url)).json()[0]["installed"] is installed
+
+    await client.post(f"/projects/{project_id}/corrections?review=true", json={
+        "action": "remove", "symbol_id": symbol.id,
+    })
+    assert (await client.get(url)).json() == []
+    assert (await client.put(f"{url}/{symbol.id}", json={"installed": True})).status_code == 404
