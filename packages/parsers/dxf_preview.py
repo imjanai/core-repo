@@ -1,18 +1,16 @@
-import io
 import math
 
-import ezdxf
 from ezdxf import disassemble
 from ezdxf.path import make_path
 
-from packages.parsers.dxf import INSUNITS_SCALE_TO_MM, _decode_dxf_bytes
+from packages.parsers.dxf import INSUNITS_SCALE_TO_MM, read_dxf
 
 _PATH_TYPES = {"LINE", "LWPOLYLINE", "POLYLINE", "ARC", "CIRCLE", "ELLIPSE", "SPLINE", "HATCH"}
 _MAX_POINTS = 150_000
 
 
 def preview_paths(data: bytes) -> tuple[list[list[tuple[float, float]]], bool]:
-    doc = ezdxf.read(io.StringIO(_decode_dxf_bytes(data)))
+    doc = read_dxf(data)
     scale = INSUNITS_SCALE_TO_MM.get(int(doc.header.get("$INSUNITS", 4)), 1.0)
     hidden = {layer.dxf.name.casefold() for layer in doc.layers if layer.is_off() or layer.is_frozen()}
     visible = (entity for entity in doc.modelspace() if entity.dxf.layer.casefold() not in hidden)

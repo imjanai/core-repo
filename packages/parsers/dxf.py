@@ -108,14 +108,17 @@ def _decode_dxf_bytes(data: bytes) -> str:
     return data.decode("utf-8", errors="replace")
 
 
+def read_dxf(data: bytes) -> ezdxf.document.Drawing:
+    """Read DXF text with universal newline handling, like ezdxf.readfile."""
+    return ezdxf.read(io.StringIO(_decode_dxf_bytes(data), newline=None))
+
+
 def parse_dxf(data: bytes) -> Project:
     """
     Parses a DXF file and returns a populated Project model.
     """
-    text_content = _decode_dxf_bytes(data)
-    stream = io.StringIO(text_content)
     try:
-        doc = ezdxf.read(stream)
+        doc = read_dxf(data)
     except Exception as exc:
         logger.error("Failed to parse DXF stream: %s", exc)
         return Project(file_type=FileType.DXF, meta={"error": str(exc)})
