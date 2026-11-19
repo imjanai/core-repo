@@ -1,7 +1,10 @@
 import { DrawingViewer } from "./drawing.js";
+import { Purchasing } from "./purchasing.js";
+import { renderComparison } from "./revision.js";
 
 const $ = id => document.getElementById(id);
-const state = { project: null, symbols: [], selected: null, placing: false, busy: false };
+const state = { project: null, previousId: null, symbols: [], selected: null, placing: false, busy: false };
+const purchasing = new Purchasing($("purchasing"));
 const money = new Intl.NumberFormat("nl-BE", { style: "currency", currency: "EUR" });
 const viewer = new DrawingViewer($("drawing"), {
   select: selectSymbol,
@@ -86,6 +89,31 @@ async function refreshReview() {
   $("count").textContent = symbols.length;
   selectSymbol(symbols.some(symbol => symbol.id === state.selected) ? state.selected : null);
   renderMaterials(materials);
+  purchasing.render(materials.items);
+  await refreshComparison();
+}
+
+function inspectChange(symbol, id) {
+  if (id) selectSymbol(id);
+  viewer.focus(symbol);
+  $("drawing").scrollIntoView({ block: "center", behavior: "smooth" });
+}
+
+async function refreshComparison() {
+  if (!state.previousId) return;
+  const url = projectUrl(`/review/revision?previous_id=${encodeURIComponent(state.previousId)}`);
+  try {
+    const comparison = await request(url);
+    viewer.changes = comparison.changes;
+    viewer.draw();
+    renderComparison($("revision-comparison"), comparison, inspectChange);
+    $("revision-error").textContent = "";
+  } catch (error) {
+    $("revision-comparison").hidden = true;
+    $("revision-error").textContent = error.message;
+    viewer.changes = [];
+    viewer.draw();
+  }
 }
 
 function selectSymbol(id) {
@@ -110,8 +138,16 @@ function selectSymbol(id) {
   viewer.draw();
 }
 
-async function openProject(project) {
+async function openProject(project, previousId = null) {
   state.project = project;
+  state.previousId = previousId;
+  viewer.changes = [];
+  $("revision-tools").hidden = true;
+  $("revision-comparison").hidden = true;
+  $("revision-error").textContent = "";
+  $("carry-status").textContent = "";
+  $("carry-review").replaceChildren();
+  $("purchasing").hidden = true;
   $("project-name").textContent = project.name || "DXF-project";
   $("workspace").hidden = true;
   $("materials").hidden = true;
@@ -129,24 +165,32 @@ async function openProject(project) {
   $("pdf").href = projectUrl("/materials?review=true&format=pdf");
   $("workspace").hidden = false;
   $("materials").hidden = false;
+  $("revision-tools").hidden = false;
   viewer.load(drawing.paths);
   status();
 }
 
 async function runUpload(action) {
-  $("start").disabled = true;
+  if (state.busy) return;
+  state.busy = true;
+  setBusy(true);
   try {
     await action();
   } catch (error) {
     status(error.message, true);
   } finally {
-    $("start").disabled = false;
+    state.busy = false;
+    setBusy(false);
   }
 }
 
-$("upload").addEventListener("submit", event => {
-  event.preventDefault();
-  const file = $("file").files[0];
+function setBusy(disabled) {
+  for (const id of ["start", "revision-start", "carry", "add", "save", "remove", "cancel", "symbols"]) {
+    $(id).disabled = disabled;
+  }
+}
+
+function uploadDrawing(file, previousId = null) {
   if (!file?.name.toLowerCase().endsWith(".dxf")) {
     status("Kies een DXF-bestand.", true);
     return;
@@ -158,18 +202,57 @@ $("upload").addEventListener("submit", event => {
     const project = await request("/projects", { method: "POST", body });
     const url = new URL(location.href);
     url.searchParams.set("project", project.id);
+    if (previousId) url.searchParams.set("previous", previousId);
+    else url.searchParams.delete("previous");
     history.replaceState(null, "", url);
-    await openProject(project);
+    $("revision-upload").reset();
+    await openProject(project, previousId);
+  });
+}
+
+$("upload").addEventListener("submit", event => {
+  event.preventDefault();
+  uploadDrawing($("file").files[0]);
+});
+
+$("revision-upload").addEventListener("submit", event => {
+  event.preventDefault();
+  uploadDrawing($("revision-file").files[0], state.project.id);
+});
+
+$("carry").addEventListener("click", () => {
+  runUpload(async () => {
+    $("carry-status").textContent = "Correcties controleren…";
+    let result;
+    try {
+      result = await request(projectUrl(`/review/revision/carry?previous_id=${encodeURIComponent(state.previousId)}`), { method: "POST" });
+    } catch (error) {
+      $("carry-status").textContent = error.message;
+      return;
+    }
+    $("carry-status").textContent = `${result.applied} overgenomen · ${result.already_reviewed} al beoordeeld · ${result.needs_review.length} handmatig controleren`;
+    const review = $("carry-review");
+    review.replaceChildren();
+    for (const symbol of result.needs_review) {
+      const row = document.createElement("li");
+      const button = document.createElement("button");
+      button.textContent = `${symbol.type} · Vorige positie ${symbol.x}, ${symbol.y} mm`;
+      button.addEventListener("click", () => inspectChange(symbol));
+      row.append(button);
+      review.append(row);
+    }
+    await refreshReview();
   });
 });
 
-const existingProject = new URL(location.href).searchParams.get("project");
+const params = new URL(location.href).searchParams;
+const existingProject = params.get("project");
 if (existingProject) {
   runUpload(async () => {
     status("Project laden…");
     const project = await request(`/projects/${encodeURIComponent(existingProject)}`);
     if (project.file_type !== "dxf") throw new Error("Kies een DXF-project.");
-    await openProject(project);
+    await openProject(project, params.get("previous"));
   });
 }
 
@@ -196,7 +279,7 @@ $("add").addEventListener("click", () => {
 async function saveCorrection(correction) {
   if (state.busy) return;
   state.busy = true;
-  for (const id of ["start", "add", "save", "remove", "cancel", "symbols"]) $(id).disabled = true;
+  setBusy(true);
   status("Correctie opslaan…");
   let saved = false;
   try {
@@ -214,7 +297,7 @@ async function saveCorrection(correction) {
     status(saved ? "Correctie opgeslagen. Vernieuw de pagina om de review opnieuw te laden." : error.message, true);
   } finally {
     state.busy = false;
-    for (const id of ["start", "add", "save", "remove", "cancel", "symbols"]) $(id).disabled = false;
+    setBusy(false);
   }
 }
 

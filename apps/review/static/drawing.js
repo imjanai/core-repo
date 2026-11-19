@@ -6,6 +6,7 @@ export class DrawingViewer {
     this.place = place;
     this.isPlacing = isPlacing;
     this.symbols = [];
+    this.changes = [];
     this.lines = new Path2D();
     this.bounds = null;
     this.scale = 1;
@@ -107,6 +108,12 @@ export class DrawingViewer {
     this.draw();
   }
 
+  focus(symbol) {
+    this.offsetX = this.canvas.clientWidth / 2 - symbol.x * this.scale;
+    this.offsetY = this.canvas.clientHeight / 2 + symbol.y * this.scale;
+    this.draw();
+  }
+
   draw() {
     const ctx = this.context;
     const ratio = window.devicePixelRatio || 1;
@@ -124,6 +131,22 @@ export class DrawingViewer {
       ctx.fill();
       ctx.strokeStyle = "#142b32";
       ctx.lineWidth = 1.5 / this.scale;
+      ctx.stroke();
+    }
+
+    const colors = { added: "#71efa4", removed: "#ff8989", moved: "#84bcff", retyped: "#ffc77a", uncertain: "#d3abff" };
+    for (const { kind, before, after } of this.changes) {
+      const symbol = after ?? before;
+      ctx.strokeStyle = colors[kind];
+      ctx.lineWidth = 2 / this.scale;
+      if (kind === "moved") {
+        ctx.beginPath();
+        ctx.moveTo(before.x, -before.y);
+        ctx.lineTo(after.x, -after.y);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.arc(symbol.x, -symbol.y, 11 / this.scale, 0, Math.PI * 2);
       ctx.stroke();
     }
   }

@@ -44,9 +44,36 @@
         </form>
       </aside>
     </section>
+    <section id="revision-tools" class="panel materials" hidden>
+      <header class="panel-head"><h2>Revisies</h2></header>
+      <form id="revision-upload" class="panel-body">
+        <label for="revision-file">Nieuwe DXF vergelijken met dit project</label>
+        <div class="row"><input id="revision-file" type="file" accept=".dxf" required><button id="revision-start">Revisie analyseren</button></div>
+      </form>
+      <p id="revision-error" class="panel-body" role="status"></p>
+      <div id="revision-comparison" class="panel-body" hidden>
+        <div class="row"><strong>Vorige tekening</strong><span id="previous-name"></span></div>
+        <p id="revision-summary"></p>
+        <p>Groen toegevoegd · rood verwijderd · blauw verplaatst · oranje type gewijzigd · paars controleren</p>
+        <ul id="symbol-changes" class="change-list"></ul>
+        <div class="row"><button id="carry">Duidelijke correcties overnemen</button><button id="revision-csv">Materiaaldelta downloaden</button></div>
+        <p id="carry-status" role="status"></p>
+        <ul id="carry-review" class="change-list"></ul>
+        <p id="no-material-changes">Geen wijzigingen in aantallen.</p>
+        <div class="table-scroll"><table><thead><tr><th>Materiaal</th><th>Vorige</th><th>Huidige</th><th>Verschil</th><th>Eenheid</th></tr></thead><tbody id="material-changes"></tbody></table></div>
+      </div>
+    </section>
     <section id="materials" class="panel materials" hidden>
       <header class="panel-head"><div><h2>Materiaallijst</h2><p id="total"></p></div><div class="row"><a id="xlsx">Excel</a><a id="pdf">PDF</a></div></header>
       <div class="table-scroll"><table><thead><tr><th>Omschrijving</th><th>Aantal</th><th>Eenheid</th><th class="number">Totaal</th></tr></thead><tbody id="items"></tbody></table></div>
+    </section>
+    <section id="purchasing" class="panel materials" hidden>
+      <header class="panel-head"><div><h2>Leveranciersbestelling</h2><p>SKU's, verpakkingen en prijzen worden in deze browser bewaard.</p></div></header>
+      <form class="panel-body">
+        <div class="table-scroll"><table><thead><tr><th>Materiaal</th><th>Nodig</th><th>Leveranciers-SKU</th><th>Per verpakking</th><th>Prijs per verpakking (€)</th><th>Verpakkingen</th></tr></thead><tbody></tbody></table></div>
+        <p role="status"></p>
+        <button class="primary">Bestel-CSV downloaden</button>
+      </form>
     </section>
   </main>
 </body>

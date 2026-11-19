@@ -27,3 +27,19 @@ uv run python ml/eval/run_eval.py --dataset ../pilot-golden --report ../pilot-ev
 
 Gebruik de tellingen, materiaalkosten en geschatte correcties voor de pilot.
 De huidige Level 1-detectiescores in de runner zijn voorbeeldwaarden.
+
+## Revisie en bestelling
+
+Open de vorige beoordeelde tekening en upload een nieuwe versie onder
+**Revisies**. De vergelijking gaat uit van dezelfde oorsprong en schaal.
+Vergelijkbare symbolen worden op positie gekoppeld. Duidelijke correcties
+kunnen worden overgenomen wanneer ook het DXF-blok en de laag overeenkomen.
+De lijst voor handmatige controle bevat onder meer eerder toegevoegde
+symbolen en correcties zonder duidelijke match. De review-URL bevat beide
+project-ID's zodat je de vergelijking later kunt heropenen.
+
+Onder **Leveranciersbestelling** vul je per materiaal een SKU, aantal per
+verpakking en eventueel een prijs per verpakking in. De CSV rondt naar hele
+verpakkingen af en gaat uit van de huidige beoordeelde materiaallijst. De
+leveranciersinstellingen worden lokaal in de browser bewaard. De CSV heeft
+een vaste kolomindeling en kan zo nodig worden aangepast aan de leverancier.

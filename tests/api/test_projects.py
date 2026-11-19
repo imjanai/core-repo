@@ -338,3 +338,46 @@ async def test_review_corrections_update_symbol_overlay_and_download(client):
     assert [row[0] for row in sheet.iter_rows(min_row=2, values_only=True)] == [
         item["description"] for item in items
     ]
+
+@pytest.mark.asyncio
+async def test_revision_compares_and_carries_only_clear_corrections(client):
+    from apps.shared.models import ProjectRow
+    from packages.schema import Symbol, SymbolType
+
+    previous_id, current_id = str(uuid.uuid4()), str(uuid.uuid4())
+    attributes = {"block_name": "WCD", "layer": "ELEKTRA"}
+    old = Symbol(type=SymbolType.WANDCONTACTDOOS, x=100, y=200, attributes=attributes)
+    matched = Symbol(type=old.type, x=102, y=200, attributes=attributes)
+    uncertain = Symbol(type=old.type, x=500, y=200, attributes=attributes)
+    async with TestSessionLocal() as db:
+        for project_id, symbols in [(previous_id, [old, uncertain]), (current_id, [matched])]:
+            db.add(ProjectRow(
+                id=project_id, status=ProjectStatus.DONE.value, file_type="dxf",
+                symbols=[item.model_dump(mode="json") for item in symbols],
+            ))
+        await db.commit()
+
+    for symbol in (old, uncertain):
+        response = await client.post(f"/projects/{previous_id}/corrections?review=true", json={
+            "action": "change_type", "symbol_id": symbol.id, "new_type": SymbolType.SCHAKELAAR.value,
+        })
+        assert response.status_code == 201, response.text
+
+    revision = f"/projects/{current_id}/review/revision"
+    params = {"previous_id": previous_id}
+    comparison = await client.get(revision, params=params)
+    assert comparison.status_code == 200, comparison.text
+    assert {change["kind"] for change in comparison.json()["changes"]} == {"retyped", "removed"}
+    assert comparison.json()["materials"]
+
+    carry = await client.post(f"{revision}/carry", params=params)
+    assert carry.status_code == 200, carry.text
+    assert carry.json()["applied"] == 1
+    assert [item["id"] for item in carry.json()["needs_review"]] == [uncertain.id]
+
+    overlay = await client.get(f"/projects/{current_id}/review/symbols")
+    assert overlay.json()[0]["type"] == SymbolType.SCHAKELAAR.value
+
+    again = await client.post(f"{revision}/carry", params=params)
+    assert again.json()["applied"] == 0
+    assert again.json()["already_reviewed"] == 1
