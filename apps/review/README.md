@@ -48,3 +48,8 @@ Gebruik **Projectbibliotheek** om eerdere DXF-projecten te zoeken op
 bestandsnaam of analysestatus. Kies twee afgeronde projecten als vorige
 en huidige tekening om ze direct te vergelijken. Bij elke symboolcorrectie
 kun je een opmerking opslaan. Je vindt die terug in **Correctiegeschiedenis**.
+
+Bij **Analysestappen** zie je welke stappen klaar, overgeslagen of mislukt
+zijn, met eventuele foutmeldingen. Gebruik **Analyse hervatten** bij een
+mislukte run met een opgeslagen checkpoint. De worker pakt de analyse op
+vanaf dat checkpoint en gebruikt de bestaande upload.

@@ -39,26 +39,70 @@ function status(message = "", error = false) {
   $("status").classList.toggle("error", error);
 }
 
-async function waitForAnalysis() {
-  while (["uploaded", "processing"].includes(state.project.status)) {
-    let run;
-    try {
-      run = await request(projectUrl("/pipeline"));
-    } catch (error) {
-      if (error.status !== 404) throw error;
+const stageLabels = {
+  pending: "Wacht", running: "Bezig", retrying: "Nieuwe poging",
+  succeeded: "Klaar", skipped: "Overgeslagen", failed: "Mislukt",
+};
+
+async function currentRun() {
+  try {
+    return await request(projectUrl("/pipeline"));
+  } catch (error) {
+    if (error.status !== 404) throw error;
+    return null;
+  }
+}
+
+function renderAnalysis(run, failed = false) {
+  const panel = $("analysis-details");
+  panel.hidden = !run;
+  $("analysis-resume").hidden = !failed || !run || run.state === "succeeded";
+  if (!run) return;
+  if (failed) panel.open = true;
+  $("analysis-progress").textContent = `· ${Math.round(run.progress * 100)}%`;
+  const stages = run.stages.map(stage => {
+    const row = document.createElement("li");
+    const name = document.createElement("strong");
+    name.textContent = stage.name;
+    row.append(name, ` · ${stageLabels[stage.state] || stage.state}`);
+    if (stage.attempts > 1) row.append(` · ${stage.attempts} pogingen`);
+    if (stage.error) {
+      const detail = document.createElement("p");
+      detail.textContent = stage.error;
+      row.append(detail);
     }
+    return row;
+  });
+  $("analysis-stages").replaceChildren(...stages);
+}
+
+const pause = () => new Promise(resolve => setTimeout(resolve, 1800));
+
+async function waitForAnalysis(taskId) {
+  const live = () => ["uploaded", "processing"].includes(state.project.status);
+  const queuedUntil = Date.now() + 30_000;
+  let waitingForWorker = Boolean(taskId);
+  while (live() || waitingForWorker) {
+    const run = await currentRun();
+    renderAnalysis(run);
     const stage = run?.stages.find(item => item.stage_id === run.current_stage);
     const step = stage?.name || run?.current_stage;
     const progress = run ? `${Math.round(run.progress * 100)}%` : "";
-    status(run ? ["Analyse bezig", step, progress].filter(Boolean).join(" · ") : "Analyse wacht op de worker…");
-    await new Promise(resolve => setTimeout(resolve, 1800));
+    status(waitingForWorker || !run ? "Analyse wacht op de worker…"
+      : ["Analyse bezig", step, progress].filter(Boolean).join(" · "));
+    await pause();
     const update = await request(projectUrl("/status"));
     state.project.status = update.status;
+    waitingForWorker = waitingForWorker && update.task_id !== taskId &&
+      !live() && update.status !== "done";
+    if (waitingForWorker && Date.now() >= queuedUntil) {
+      renderAnalysis(run, true);
+      throw new Error("De hervatopdracht staat in de wachtrij. Controleer de worker en open het project opnieuw om de status te bekijken.");
+    }
   }
-  if (state.project.status !== "done") {
-    const run = await request(projectUrl("/pipeline")).catch(() => null);
-    throw new Error(run?.error || "De analyse is mislukt.");
-  }
+  const run = await currentRun();
+  renderAnalysis(run, state.project.status !== "done");
+  if (state.project.status !== "done") throw new Error(run?.error || "De analyse is mislukt.");
 }
 
 function renderMaterials(materials) {
@@ -170,7 +214,7 @@ function selectSymbol(id) {
   viewer.draw();
 }
 
-async function openProject(project, previousId = null) {
+async function openProject(project, previousId = null, taskId = null) {
   state.project = project;
   state.previousId = previousId;
   viewer.changes = [];
@@ -186,7 +230,9 @@ async function openProject(project, previousId = null) {
   $("workspace").hidden = true;
   $("materials").hidden = true;
   state.selected = null;
-  await waitForAnalysis();
+  $("analysis-details").hidden = true;
+  $("analysis-resume").hidden = true;
+  await waitForAnalysis(taskId);
   const preview = request(projectUrl("/review/drawing")).catch(error => ({ paths: [], error: error.message }));
   const types = await request("/review/symbol-types");
   $("type").replaceChildren(...types.map(type => new Option(type, type)));
@@ -219,7 +265,7 @@ async function runUpload(action) {
 }
 
 function setBusy(disabled) {
-  for (const id of ["start", "revision-start", "carry", "add", "save", "remove", "cancel", "symbols"]) {
+  for (const id of ["start", "revision-start", "analysis-resume", "carry", "add", "save", "remove", "cancel", "symbols"]) {
     $(id).disabled = disabled;
   }
 }
@@ -243,6 +289,13 @@ function uploadDrawing(file, previousId = null) {
     await openProject(project, previousId);
   });
 }
+
+$("analysis-resume").addEventListener("click", () => {
+  runUpload(async () => {
+    const result = await request(projectUrl("/pipeline/resume"), { method: "POST" });
+    await openProject(state.project, state.previousId, result.task_id);
+  });
+});
 
 $("upload").addEventListener("submit", event => {
   event.preventDefault();

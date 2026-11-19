@@ -13,16 +13,30 @@ aparte "voortgangstabel" die kan afwijken.
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
 from apps.shared.database import get_sync_engine
 from apps.shared.models import PipelineRunRow, row_to_run, run_to_row
-from packages.pipeline.types import PipelineRun
+from packages.pipeline.types import PipelineRun, RunState
 
 logger = logging.getLogger("imjan.worker.store")
+
+
+def resume_claim_active(run: PipelineRun, lease: timedelta, now: datetime) -> bool:
+    claimed_at = run.payload.get("resume_claimed_at")
+    if not claimed_at or not run.payload.get("resume_claim_token"):
+        return False
+    try:
+        claimed = datetime.fromisoformat(claimed_at)
+        if claimed.tzinfo is None:
+            claimed = claimed.replace(tzinfo=timezone.utc)
+        return now - claimed < lease
+    except (TypeError, ValueError):
+        logger.warning("Ongeldige hervatreservering voor run %s", run.run_id)
+        return False
 
 
 class SqlCheckpointStore:
@@ -46,6 +60,36 @@ class SqlCheckpointStore:
             else:
                 run_to_row(run, row)
             session.commit()
+
+    def claim_resume(self, run_id: str, token: str, lease: timedelta) -> PipelineRun | None:
+        """Reserve a run under a database lock before a worker starts recovery."""
+        with self._factory.begin() as session:
+            row = session.get(PipelineRunRow, run_id, with_for_update=True)
+            if row is None or row.state == RunState.SUCCEEDED.value:
+                return None
+
+            run = row_to_run(row)
+            now = utcnow()
+            if resume_claim_active(run, lease, now):
+                return None
+
+            run.payload = {
+                **run.payload,
+                "resume_claimed_at": now.isoformat(),
+                "resume_claim_token": token,
+            }
+            run_to_row(run, row)
+            return run
+
+    def release_resume(self, run_id: str, token: str) -> None:
+        with self._factory.begin() as session:
+            row = session.get(PipelineRunRow, run_id, with_for_update=True)
+            if row is None or (row.payload or {}).get("resume_claim_token") != token:
+                return
+            row.payload = {
+                key: value for key, value in row.payload.items()
+                if key not in {"resume_claim_token", "resume_claimed_at"}
+            }
 
     # -- lezen --------------------------------------------------------------
 

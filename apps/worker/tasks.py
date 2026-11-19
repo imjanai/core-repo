@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from celery import states
 from sqlalchemy import select
@@ -32,7 +33,7 @@ from apps.shared.database import get_sync_engine as get_engine
 from apps.shared.models import PipelineRunRow, ProjectRow, row_to_run
 from apps.shared.queue import REAP_STUCK_RUNS, RESUME_PIPELINE, RUN_PIPELINE, celery_app
 from apps.worker.loader import ProjectResultSink, S3SourceLoader
-from apps.worker.store import SqlCheckpointStore
+from apps.worker.store import SqlCheckpointStore, resume_claim_active
 from packages.pipeline import (
     EventBus,
     LoggingHandler,
@@ -235,23 +236,10 @@ def run_pipeline(self, project_id: str, s3_key: str, file_type: str = "unknown")
 # ---------------------------------------------------------------------------
 
 
-def _claim_for_resume(store: SqlCheckpointStore, run) -> bool:
-    """
-    Reservering zodat beat-ticks (of een handmatige retry) niet twee workers
-    dezelfde run laten hervatten.
-    """
-    now = datetime.now(timezone.utc)
-    claimed_at = run.payload.get("resume_claimed_at")
-    if claimed_at:
-        try:
-            age = now - datetime.fromisoformat(claimed_at)
-        except ValueError:
-            age = timedelta(days=1)
-        if age < timedelta(minutes=settings.stale_after_minutes):
-            return False
-    run.payload["resume_claimed_at"] = now.isoformat()
-    store.save(run)
-    return True
+def _resume_lease() -> timedelta:
+    return timedelta(seconds=max(
+        settings.pipeline_hard_time_limit + 60, settings.stale_after_minutes * 60,
+    ))
 
 
 @celery_app.task(
@@ -262,30 +250,28 @@ def _claim_for_resume(store: SqlCheckpointStore, run) -> bool:
     acks_late=True,
 )
 def resume_pipeline(self, run_id: str):
-    """Hervat een niet-terminale run bij de eerste stap die nog niet klaar was."""
+    """Hervat een analyse bij de eerste stap die nog niet klaar was."""
     engine = get_engine()
     store = _store(engine)
 
-    run = store.load(run_id)
+    token = str(uuid4())
+    lease = _resume_lease()
+    run = store.claim_resume(run_id, token, lease)
     if run is None:
-        logger.warning("Run %s niet gevonden; niets te hervatten.", run_id)
-        return {"state": "missing", "run_id": run_id}
-    if run.state.is_terminal:
-        return {"state": run.state.value, "run_id": run_id}
-
-    if not _claim_for_resume(store, run):
-        logger.info("Run %s wordt al door iemand anders hervat.", run_id)
+        latest = store.load(run_id)
+        if latest is None:
+            return {"state": "missing", "run_id": run_id}
+        if latest.state == RunState.SUCCEEDED:
+            return {"state": "succeeded", "run_id": run_id}
         return {"state": "claimed_elsewhere", "run_id": run_id}
 
-    engine = get_engine()
-    project = _load_project(engine, run.project_id)
-    ctx = build_context(project, payload=dict(run.payload), engine=engine)
-    _set_project_status(engine, run.project_id, ProjectStatus.PROCESSING,
-                        task_id=self.request.id)
-
-    pipeline = build_default_pipeline()
     try:
-        resumed = pipeline.run(ctx, store=store, resume=run_id, task_ref=self.request.id)
+        project = _load_project(engine, run.project_id)
+        ctx = build_context(project, payload=dict(run.payload), engine=engine)
+        _set_project_status(engine, run.project_id, ProjectStatus.PROCESSING,
+                            task_id=self.request.id)
+        pipeline = build_default_pipeline()
+        resumed = pipeline.run(ctx, store=store, resume=run, task_ref=self.request.id)
     except PipelineFailed as exc:
         _set_project_status(engine, run.project_id, ProjectStatus.FAILED, error=str(exc))
         return {"state": "failed", "run_id": run_id, "stage": exc.stage_id,
@@ -301,6 +287,12 @@ def resume_pipeline(self, run_id: str):
                                 error=f"infrastructuur: {exc}")
             raise
         raise self.retry(exc=exc)
+
+    finally:
+        try:
+            store.release_resume(run_id, token)
+        except Exception:  # noqa: BLE001
+            logger.exception("Hervatreservering voor run %s kon niet worden vrijgegeven", run_id)
 
     return {"state": "succeeded", "run_id": run_id, "progress": resumed.progress}
 
@@ -340,6 +332,7 @@ def reap_stuck_runs():
         ).scalars().all()
         stale = [row_to_run(r) for r in rows]
 
+    lease = _resume_lease()
     reclaimed = 0
     given_up = 0
 
@@ -354,30 +347,36 @@ def reap_stuck_runs():
                 continue
 
         resumes = int(run.payload.get("resume_count", 0))
+        with Session(engine) as session:
+            row = session.get(PipelineRunRow, run.run_id, with_for_update=True)
+            if row is None:
+                continue
+            current = row_to_run(row)
+            now = datetime.now(timezone.utc)
+            if current.updated_at != run.updated_at or resume_claim_active(current, lease, now):
+                continue
+            if resumes >= settings.max_run_resumes:
+                row.state = RunState.FAILED.value
+                row.error = (
+                    f"Na {resumes} hervatpogingen nog steeds niet voltooid; "
+                    "handmatige inspectie vereist."
+                )
+                row.finished_at = now
+            else:
+                row.payload = {**(row.payload or {}), "resume_count": resumes + 1}
+                resume_pipeline.delay(run.run_id)
+            row.updated_at = now
+            error = row.error
+            session.commit()
+
         if resumes >= settings.max_run_resumes:
-            run.state = RunState.FAILED
-            run.error = (
-                f"Na {resumes} hervatpogingen nog steeds niet voltooid; "
-                "handmatige inspectie vereist."
-            )
-            run.finished_at = datetime.now(timezone.utc)
-            store.save(run)
-            _set_project_status(engine, run.project_id, ProjectStatus.FAILED,
-                                error=run.error)
+            _set_project_status(engine, run.project_id, ProjectStatus.FAILED, error=error)
             given_up += 1
-            logger.error("Run %s definitief opgegeven na %d hervattingen",
-                         run.run_id, resumes)
-            continue
-
-        if not _claim_for_resume(store, run):
-            continue
-
-        run.payload["resume_count"] = resumes + 1
-        store.save(run)
-        resume_pipeline.delay(run.run_id)
-        reclaimed += 1
-        logger.warning("Gestrande run %s opnieuw in de wachtrij gezet (poging %d)",
-                       run.run_id, resumes + 1)
+            logger.error("Run %s definitief opgegeven na %d hervattingen", run.run_id, resumes)
+        else:
+            reclaimed += 1
+            logger.warning("Gestrande run %s opnieuw in de wachtrij gezet (poging %d)",
+                           run.run_id, resumes + 1)
 
     if stale:
         logger.info("Sweeper: %d gestrande run(s), %d hervat, %d opgegeven",
