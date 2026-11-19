@@ -1,0 +1,29 @@
+# Evaluation and Model Promotion Gate Configuration
+# imjan AI — 4-Level Evaluation Framework
+
+evaluation:
+  dataset_path: "ml/data/golden"
+  batch_size: 1
+  device: "auto"
+
+gates:
+  # Level 1: Detection Gates
+  min_map50: 0.85
+  max_map50_drop: 0.00        # Zero regression allowed on mAP@50
+
+  # Level 2: Counting Gates
+  max_avg_count_error: 1.5    # Max 1.5 missing/extra symbols per blueprint
+  min_perfect_drawings_pct: 50.0  # At least 50% blueprints with 0 count error
+
+  # Level 3: Outcome (Material Bill) Gates
+  max_cost_error_pct: 2.5     # Material total price within 2.5% of ground truth
+  max_quantity_error_pct: 3.0
+
+  # Level 4: Review Workflow Gates
+  min_zero_correction_pct: 40.0
+  max_avg_corrections: 2.0
+
+reporting:
+  output_markdown: "eval-rapport.md"
+  output_json: "eval-metrics.json"
+  mlflow_logging: true

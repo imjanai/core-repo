@@ -1,0 +1,36 @@
+[project]
+name = "imjan-ai"
+version = "0.1.0"
+description = "AI-platform voor elektriciens: tekeninganalyse, materiaallijsten en tekenen via MCP"
+requires-python = ">=3.11"
+dependencies = [
+  # API en taken
+  "fastapi", "uvicorn[standard]", "pydantic>=2", "pydantic-settings>=2",
+  "sqlalchemy[asyncio]>=2", "greenlet", "alembic", "asyncpg", "psycopg2-binary",
+  "celery[redis]", "boto3", "python-multipart",
+  # Tekening-parsing
+  "ezdxf", "pymupdf", "pdfplumber", "ifcopenshell", "opencv-python-headless",
+  # Vision / ML
+  "torch", "transformers", "peft", "accelerate", "ultralytics", "sahi",
+  "paddleocr", "qwen-vl-utils", "openai",   # openai-client praat met vLLM
+  # MCP
+  "mcp",
+  # Output
+  "openpyxl", "weasyprint", "jinja2",
+  # Kwaliteit en observability
+  "pytest", "pytest-asyncio", "pytest-cov", "httpx", "aiosqlite",
+  "ruff", "mypy", "sentry-sdk", "langfuse", "mlflow",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true

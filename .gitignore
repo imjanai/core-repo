@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.env
+
+# MLflow-lokaal state (hersseneerbaar, hoort niet in git)
+mlruns/
+mlflow.db

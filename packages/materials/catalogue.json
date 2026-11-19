@@ -1,0 +1,426 @@
+[
+  {
+    "symbol_type": "wandcontactdoos",
+    "etim_code": "EC000195",
+    "description": "Wandcontactdoos 2P+A 16A 230V inbouw",
+    "unit": "st",
+    "unit_price": 8.50,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "wandcontactdoos_dubbel",
+    "etim_code": "EC000195",
+    "description": "Dubbele wandcontactdoos 2×2P+A 16A 230V inbouw",
+    "unit": "st",
+    "unit_price": 13.50,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "wandcontactdoos_waterdicht",
+    "etim_code": "EC000197",
+    "description": "Wandcontactdoos 2P+A 16A IP55 opbouw",
+    "unit": "st",
+    "unit_price": 18.90,
+    "brand_hint": "Famatel / ABB / Gewiss"
+  },
+  {
+    "symbol_type": "wandcontactdoos_kracht",
+    "etim_code": "EC000199",
+    "description": "Krachtstopcontact CEE 16A 5P 400V IP44",
+    "unit": "st",
+    "unit_price": 34.00,
+    "brand_hint": "PCE / Schneider / ABB"
+  },
+  {
+    "symbol_type": "schakelaar",
+    "etim_code": "EC000194",
+    "description": "Enkelpolige schakelaar 10AX 250V inbouw",
+    "unit": "st",
+    "unit_price": 6.75,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "schakelaar_wissel",
+    "etim_code": "EC000194",
+    "description": "Wisselschakelaar 10AX 250V inbouw",
+    "unit": "st",
+    "unit_price": 7.50,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "schakelaar_kruis",
+    "etim_code": "EC000194",
+    "description": "Kruisschakelaar 10AX 250V inbouw",
+    "unit": "st",
+    "unit_price": 9.80,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "schakelaar_dimmer",
+    "etim_code": "EC000198",
+    "description": "Dimschakelaar LED 5-250W inbouw",
+    "unit": "st",
+    "unit_price": 28.50,
+    "brand_hint": "Niko / Schneider / Busch-Jaeger"
+  },
+  {
+    "symbol_type": "schakelaar_tijdschakelaar",
+    "etim_code": "EC000198",
+    "description": "Trappenhuisautomaat 1-7 min 10A inbouw",
+    "unit": "st",
+    "unit_price": 22.00,
+    "brand_hint": "Hager / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "bewegingsmelder",
+    "etim_code": "EC001075",
+    "description": "Bewegingsmelder PIR opbouw 180° 12m 1200W",
+    "unit": "st",
+    "unit_price": 24.00,
+    "brand_hint": "Legrand / Schneider / Theben"
+  },
+  {
+    "symbol_type": "drukknop",
+    "etim_code": "EC000194",
+    "description": "Drukknop 10A inbouw (bel/impulsrelais)",
+    "unit": "st",
+    "unit_price": 6.00,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "lichtpunt",
+    "etim_code": "EC001714",
+    "description": "LED-inbouwspot 6W 3000K IP20",
+    "unit": "st",
+    "unit_price": 14.90,
+    "brand_hint": "Ledvance / Philips / Osram"
+  },
+  {
+    "symbol_type": "lichtpunt_spot",
+    "etim_code": "EC001714",
+    "description": "LED-inbouwspot 6W 3000K IP44 badkamer",
+    "unit": "st",
+    "unit_price": 19.50,
+    "brand_hint": "Ledvance / Philips / Paulmann"
+  },
+  {
+    "symbol_type": "lichtpunt_tl",
+    "etim_code": "EC001715",
+    "description": "LED-TL armatuur 36W 3000K 120cm opbouw",
+    "unit": "st",
+    "unit_price": 32.00,
+    "brand_hint": "Philips / Ledvance / Osram"
+  },
+  {
+    "symbol_type": "lichtpunt_buiten",
+    "etim_code": "EC001714",
+    "description": "Buitenwandlamp LED 10W 3000K IP54",
+    "unit": "st",
+    "unit_price": 38.00,
+    "brand_hint": "Steinel / Philips / SLV"
+  },
+  {
+    "symbol_type": "noodverlichting",
+    "etim_code": "EC001716",
+    "description": "Noodverlichtingsarmatuur 3W autonomie 3h",
+    "unit": "st",
+    "unit_price": 42.00,
+    "brand_hint": "Normalux / Legrand Bticino"
+  },
+  {
+    "symbol_type": "noodverlichting_pictogram",
+    "etim_code": "EC001716",
+    "description": "Vluchtwegpictogram LED 1W autonomie 3h",
+    "unit": "st",
+    "unit_price": 38.00,
+    "brand_hint": "Normalux / Legrand / ABB"
+  },
+  {
+    "symbol_type": "rookmelder",
+    "etim_code": "EC001069",
+    "description": "Rookmelder optisch 9VDC batterij EN14604",
+    "unit": "st",
+    "unit_price": 22.00,
+    "brand_hint": "Kidde / Ei Electronics / Aico"
+  },
+  {
+    "symbol_type": "koolmonoxidemelder",
+    "etim_code": "EC001069",
+    "description": "Koolmonoxidemelder 230V EN50291",
+    "unit": "st",
+    "unit_price": 35.00,
+    "brand_hint": "Kidde / Ei Electronics / Aico"
+  },
+  {
+    "symbol_type": "hittemelder",
+    "etim_code": "EC001069",
+    "description": "Hittemelder 58°C/85°C batterij EN54-5",
+    "unit": "st",
+    "unit_price": 28.00,
+    "brand_hint": "Ei Electronics / Aico / Kidde"
+  },
+  {
+    "symbol_type": "gasdetector",
+    "etim_code": "EC001069",
+    "description": "Gasdetector aardgas/LPG 230V",
+    "unit": "st",
+    "unit_price": 48.00,
+    "brand_hint": "Ei Electronics / Gassalarm"
+  },
+  {
+    "symbol_type": "alarmpaneel",
+    "etim_code": "EC001070",
+    "description": "Inbraakalarmpaneel 8 zones met display",
+    "unit": "st",
+    "unit_price": 220.00,
+    "brand_hint": "Ajax / Paradox / Texecom"
+  },
+  {
+    "symbol_type": "magneetcontact",
+    "etim_code": "EC001070",
+    "description": "Magneetcontact deur/raam inbouw",
+    "unit": "st",
+    "unit_price": 12.00,
+    "brand_hint": "Risco / Paradox / Texecom"
+  },
+  {
+    "symbol_type": "sirene",
+    "etim_code": "EC001070",
+    "description": "Alarmsirene buiten 110dB IP34 met flitslicht",
+    "unit": "st",
+    "unit_price": 85.00,
+    "brand_hint": "Ajax / Risco / Texecom"
+  },
+  {
+    "symbol_type": "verdeler",
+    "etim_code": "EC000334",
+    "description": "Verdeelkast 24-modules AP/IP40 met DIN-rail",
+    "unit": "st",
+    "unit_price": 68.00,
+    "brand_hint": "Hager / ABB / Schneider"
+  },
+  {
+    "symbol_type": "groepenkast",
+    "etim_code": "EC000335",
+    "description": "Hoofdverdeelkast 48-modules AP/IP40 met kap",
+    "unit": "st",
+    "unit_price": 145.00,
+    "brand_hint": "Hager / ABB / Schneider"
+  },
+  {
+    "symbol_type": "zekering",
+    "etim_code": "EC000189",
+    "description": "Installatieautomaat B16A 1P+N 6kA",
+    "unit": "st",
+    "unit_price": 12.50,
+    "brand_hint": "Hager / ABB / Schneider"
+  },
+  {
+    "symbol_type": "aardlekschakelaar",
+    "etim_code": "EC000191",
+    "description": "Aardlekschakelaar 40A 30mA 2P type-A",
+    "unit": "st",
+    "unit_price": 38.00,
+    "brand_hint": "Hager / ABB / Schneider"
+  },
+  {
+    "symbol_type": "aardlekautomaat",
+    "etim_code": "EC000191",
+    "description": "Aardlekautomaat B16A 30mA 1P+N RCBO",
+    "unit": "st",
+    "unit_price": 52.00,
+    "brand_hint": "Hager / ABB / Schneider"
+  },
+  {
+    "symbol_type": "hoofdschakelaar",
+    "etim_code": "EC000192",
+    "description": "Lastscheider 63A 4P als hoofdschakelaar",
+    "unit": "st",
+    "unit_price": 45.00,
+    "brand_hint": "Hager / ABB / Schneider"
+  },
+  {
+    "symbol_type": "overspanningsbeveiliging",
+    "etim_code": "EC000193",
+    "description": "Overspanningsbeveiliging SPD type 2 40kA",
+    "unit": "st",
+    "unit_price": 78.00,
+    "brand_hint": "Dehn / Citel / Phoenix Contact"
+  },
+  {
+    "symbol_type": "thermostaat",
+    "etim_code": "EC000479",
+    "description": "Programmeerbare ruimtethermostaat 230V",
+    "unit": "st",
+    "unit_price": 38.50,
+    "brand_hint": "Honeywell / Siemens / Hager"
+  },
+  {
+    "symbol_type": "ventilatieventiel",
+    "etim_code": "EC001200",
+    "description": "Ventilatieventiel toe-/afvoer Ø125mm",
+    "unit": "st",
+    "unit_price": 18.00,
+    "brand_hint": "Itho / Zehnder / Duco"
+  },
+  {
+    "symbol_type": "ventilatieunit",
+    "etim_code": "EC001200",
+    "description": "WTW-unit 400m³/h met warmteterugwinning",
+    "unit": "st",
+    "unit_price": 980.00,
+    "brand_hint": "Itho / Zehnder / Brink"
+  },
+  {
+    "symbol_type": "warmtepomp_aansluiting",
+    "etim_code": "EC000199",
+    "description": "Aansluitpunt warmtepomp 3×32A 400V",
+    "unit": "st",
+    "unit_price": 55.00,
+    "brand_hint": "nvt — aansluitpunt"
+  },
+  {
+    "symbol_type": "laadpaal",
+    "etim_code": "EC001900",
+    "description": "EV-laadpunt 1-fase 7.4kW type-2 slimme laadpaal",
+    "unit": "st",
+    "unit_price": 850.00,
+    "brand_hint": "Alfen / Easee / Wallbox"
+  },
+  {
+    "symbol_type": "datapunt",
+    "etim_code": "EC001553",
+    "description": "Data-aansluitdoos RJ45 Cat.6 UTP inbouw",
+    "unit": "st",
+    "unit_price": 12.80,
+    "brand_hint": "Panduit / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "datapunt_dubbel",
+    "etim_code": "EC001553",
+    "description": "Dubbele data-aansluitdoos 2×RJ45 Cat.6 UTP inbouw",
+    "unit": "st",
+    "unit_price": 18.00,
+    "brand_hint": "Panduit / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "telefoonpunt",
+    "etim_code": "EC001554",
+    "description": "Telefoonaansluiting RJ11 inbouw",
+    "unit": "st",
+    "unit_price": 8.00,
+    "brand_hint": "Niko / Legrand"
+  },
+  {
+    "symbol_type": "tv_punt",
+    "etim_code": "EC001555",
+    "description": "TV-aansluiting coax IEC male inbouw",
+    "unit": "st",
+    "unit_price": 9.50,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "audio_punt",
+    "etim_code": "EC001556",
+    "description": "Audiopunt stereo inbouw 2×RCA",
+    "unit": "st",
+    "unit_price": 14.00,
+    "brand_hint": "Niko / Legrand"
+  },
+  {
+    "symbol_type": "toegangslezer",
+    "etim_code": "EC001070",
+    "description": "RFID-toegangslezer 13.56MHz Mifare",
+    "unit": "st",
+    "unit_price": 95.00,
+    "brand_hint": "HID / Nedap / Dormakaba"
+  },
+  {
+    "symbol_type": "zonnepaneel_omvormer",
+    "etim_code": "EC002000",
+    "description": "String-omvormer PV 5kW 1-fase",
+    "unit": "st",
+    "unit_price": 680.00,
+    "brand_hint": "SolarEdge / Fronius / SMA"
+  },
+  {
+    "symbol_type": "accu_opslag",
+    "etim_code": "EC002001",
+    "description": "Thuisaccu Li-ion 10kWh inclusief BMS",
+    "unit": "st",
+    "unit_price": 4800.00,
+    "brand_hint": "Tesla Powerwall / SolarEdge / BYD"
+  },
+  {
+    "symbol_type": "aardingspunt",
+    "etim_code": "EC000200",
+    "description": "Aardingspen + aardingskabel 16mm² groen/geel",
+    "unit": "st",
+    "unit_price": 28.00,
+    "brand_hint": "nvt"
+  },
+  {
+    "symbol_type": "potentiaalvereffeningspunt",
+    "etim_code": "EC000200",
+    "description": "Potentiaalvereffeningsklem 16mm² rail",
+    "unit": "st",
+    "unit_price": 15.00,
+    "brand_hint": "Hager / ABB / Wago"
+  },
+  {
+    "symbol_type": "transformator",
+    "etim_code": "EC000210",
+    "description": "Scheidingstransformator 230/12V 63VA",
+    "unit": "st",
+    "unit_price": 68.00,
+    "brand_hint": "Hager / Schneider"
+  },
+  {
+    "symbol_type": "ups",
+    "etim_code": "EC000211",
+    "description": "UPS 1000VA line-interactive met AVR",
+    "unit": "st",
+    "unit_price": 185.00,
+    "brand_hint": "APC / Eaton / Riello"
+  },
+  {
+    "symbol_type": "deurbeldrukker",
+    "etim_code": "EC001600",
+    "description": "Deurbeldrukker verlicht inbouw 230V",
+    "unit": "st",
+    "unit_price": 7.50,
+    "brand_hint": "Niko / Legrand / Schneider"
+  },
+  {
+    "symbol_type": "deurbelinstallatie",
+    "etim_code": "EC001601",
+    "description": "Deurbelinstallatie 230V met transformator en bel",
+    "unit": "st",
+    "unit_price": 42.00,
+    "brand_hint": "Niko / Grothe / Legrand"
+  },
+  {
+    "symbol_type": "intercom",
+    "etim_code": "EC001602",
+    "description": "Intercom buiten-/binnenpost audio 230V",
+    "unit": "st",
+    "unit_price": 120.00,
+    "brand_hint": "Aiphone / Legrand / Niko"
+  },
+  {
+    "symbol_type": "videofoon",
+    "etim_code": "EC001603",
+    "description": "Videofoon kleur 7\" touchscreen + buiten-HD-camera",
+    "unit": "st",
+    "unit_price": 380.00,
+    "brand_hint": "Aiphone / Comelit / Legrand"
+  },
+  {
+    "symbol_type": "onbekend",
+    "etim_code": null,
+    "description": "Onbekend elektrisch component",
+    "unit": "st",
+    "unit_price": null,
+    "brand_hint": null
+  }
+]

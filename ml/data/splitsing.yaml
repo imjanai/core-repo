@@ -1,0 +1,28 @@
+golden:
+- synth-golden-001
+- synth-golden-002
+- synth-golden-003
+- synth-golden-004
+- synth-golden-005
+- synth-golden-006
+train:
+- synth-train-001
+- synth-train-002
+- synth-train-003
+- synth-train-004
+- synth-train-005
+- synth-train-006
+- synth-train-009
+- synth-train-010
+- synth-val-002
+- synth-val-003
+- synth-val-004
+val:
+- synth-train-007
+- synth-train-008
+- synth-val-001
+metadata:
+  total_golden: 6
+  total_train: 11
+  total_val: 3
+  salt: imjan-split-v1

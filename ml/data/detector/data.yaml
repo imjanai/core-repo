@@ -1,0 +1,9 @@
+path: C:/Users/AllexanderBergmans/Desktop/elektro-ai/ml/data/detector
+train: images/train
+val: images/val
+names:
+  0: wandcontactdoos
+  1: schakelaar
+  2: lichtpunt
+  3: datapunt
+  4: verdeler

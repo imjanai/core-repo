@@ -1,0 +1,46 @@
+# Configuration for Symbol Detector (Ultralytics YOLO / RT-DETR)
+# imjan AI — Electrical Blueprints Symbol Detection
+
+model:
+  architecture: "yolo11n.pt"  # Baseline: YOLO11-nano / YOLO11-small
+  num_classes: 5
+  classes:
+    0: wandcontactdoos
+    1: schakelaar
+    2: lichtpunt
+    3: datapunt
+    4: verdeler
+
+data:
+  dataset_path: "ml/data/detector"
+  train: "images/train"
+  val: "images/val"
+  imgsz: 1024                 # 1024px tiles for fine blueprint symbols
+  tile_overlap: 0.2           # SAHI overlap ratio
+
+training:
+  epochs: 80
+  batch_size: 8
+  patience: 15
+  learning_rate: 0.001
+  optimizer: "AdamW"
+  weight_decay: 0.0005
+  seed: 42
+  workers: 4
+  device: "auto"              # Auto: cuda if available, else cpu
+
+augmentation:
+  degrees: 90.0               # Architectural symbols often rotate 90/180/270 deg
+  translate: 0.1
+  scale: 0.2
+  shear: 0.0
+  perspective: 0.0
+  flipud: 0.0                 # Blueprint text shouldn't be flipped upside down
+  fliplr: 0.5
+  mosaic: 0.5
+
+tracking:
+  experiment_name: "detector-training"
+  tracker: "mlflow"
+  export_onnx: true
+  min_map50_threshold: 0.80

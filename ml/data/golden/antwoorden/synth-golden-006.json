@@ -1,0 +1,642 @@
+{
+  "id": "synth-golden-006",
+  "name": "Synthetisch Project synth-golden-006",
+  "status": "uploaded",
+  "file_type": "image",
+  "scale": 10.0,
+  "rooms": [
+    {
+      "id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "name": "Woonkamer",
+      "floor": 0,
+      "polygon": [
+        [
+          800.0,
+          800.0
+        ],
+        [
+          5120.0,
+          800.0
+        ],
+        [
+          5120.0,
+          5120.0
+        ],
+        [
+          800.0,
+          5120.0
+        ]
+      ]
+    },
+    {
+      "id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "name": "Keuken",
+      "floor": 0,
+      "polygon": [
+        [
+          5120.0,
+          800.0
+        ],
+        [
+          9440.0,
+          800.0
+        ],
+        [
+          9440.0,
+          5120.0
+        ],
+        [
+          5120.0,
+          5120.0
+        ]
+      ]
+    },
+    {
+      "id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "name": "Badkamer",
+      "floor": 0,
+      "polygon": [
+        [
+          800.0,
+          5120.0
+        ],
+        [
+          5120.0,
+          5120.0
+        ],
+        [
+          5120.0,
+          9440.0
+        ],
+        [
+          800.0,
+          9440.0
+        ]
+      ]
+    },
+    {
+      "id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "name": "Hal",
+      "floor": 0,
+      "polygon": [
+        [
+          5120.0,
+          5120.0
+        ],
+        [
+          9440.0,
+          5120.0
+        ],
+        [
+          9440.0,
+          9440.0
+        ],
+        [
+          5120.0,
+          9440.0
+        ]
+      ]
+    }
+  ],
+  "symbols": [
+    {
+      "id": "f23b61c9-36e5-4a5a-a06a-a761c1190ff6",
+      "type": "verdeler",
+      "x": 4260.0,
+      "y": 1360.0,
+      "room_id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "circuit": "G1",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "ae80a355-92ac-4d22-ae0b-901129264ed0",
+      "type": "schakelaar",
+      "x": 3080.0,
+      "y": 1960.0,
+      "room_id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "circuit": "G1",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "f921fe3a-2e23-49b7-8570-01737866cf0c",
+      "type": "wandcontactdoos",
+      "x": 3740.0,
+      "y": 3250.0,
+      "room_id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "circuit": "G1",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "3e5471e6-894b-4259-9092-2310763fd924",
+      "type": "lichtpunt",
+      "x": 3130.0,
+      "y": 1740.0,
+      "room_id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "circuit": "G1",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "f57012f6-d5a4-475b-900f-79e96d965d2c",
+      "type": "wandcontactdoos",
+      "x": 4440.0,
+      "y": 3930.0,
+      "room_id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "circuit": "G1",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "d9d446b3-b6ac-4dfd-a87e-82ca20e98dc5",
+      "type": "datapunt",
+      "x": 1710.0,
+      "y": 1420.0,
+      "room_id": "9efd947c-27e7-4198-94ba-63b32f3921a7",
+      "circuit": "G1",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "41339e46-8c20-4e94-a575-95a7adeabb07",
+      "type": "wandcontactdoos",
+      "x": 5730.0,
+      "y": 2500.0,
+      "room_id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "circuit": "G2",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "f58f1a6b-0ed1-4d68-833f-52030969425e",
+      "type": "schakelaar",
+      "x": 5630.0,
+      "y": 2780.0,
+      "room_id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "circuit": "G2",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "3d379de5-1c15-4465-a737-d4f31786e0b4",
+      "type": "lichtpunt",
+      "x": 7540.0,
+      "y": 1820.0,
+      "room_id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "circuit": "G2",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "0bd944e5-f34f-40b4-94df-48877b8567da",
+      "type": "wandcontactdoos",
+      "x": 7030.0,
+      "y": 2680.0,
+      "room_id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "circuit": "G2",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "38f1db6f-ac2c-4d32-8f6d-54480ab02929",
+      "type": "datapunt",
+      "x": 8570.0,
+      "y": 4330.0,
+      "room_id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "circuit": "G2",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "88c2e945-d42e-4364-b4dc-409dd7778bb3",
+      "type": "lichtpunt",
+      "x": 8220.0,
+      "y": 4170.0,
+      "room_id": "a14a5cc8-5866-4ee7-846f-392dbbeb35a6",
+      "circuit": "G2",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "2c9354d6-95bf-416b-8b79-fe17f967c28e",
+      "type": "schakelaar",
+      "x": 2880.0,
+      "y": 8180.0,
+      "room_id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "circuit": "G3",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "732aa9fb-47a0-42ba-8af4-e18cb3176e55",
+      "type": "wandcontactdoos",
+      "x": 4780.0,
+      "y": 6030.0,
+      "room_id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "circuit": "G3",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "8c48aa50-0a52-4cbe-a7dc-f7ab8b4095b0",
+      "type": "schakelaar",
+      "x": 1740.0,
+      "y": 8260.0,
+      "room_id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "circuit": "G3",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "14815af9-dc32-4226-97f3-236c0acdf47e",
+      "type": "datapunt",
+      "x": 1190.0,
+      "y": 9090.0,
+      "room_id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "circuit": "G3",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "c468dcc1-98b9-4c2e-9953-370c2d310f3d",
+      "type": "wandcontactdoos",
+      "x": 1640.0,
+      "y": 6030.0,
+      "room_id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "circuit": "G3",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "3a2f212f-1d75-4c6a-a45d-b666e619082c",
+      "type": "lichtpunt",
+      "x": 3510.0,
+      "y": 7900.0,
+      "room_id": "4a373ce4-4ded-441f-9ab9-7036c83d45db",
+      "circuit": "G3",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "fe9eb76d-6d0e-4579-97f8-8c0b4a9b1233",
+      "type": "schakelaar",
+      "x": 6690.0,
+      "y": 7420.0,
+      "room_id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "circuit": "G4",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "a704f189-d596-40e2-9235-9d5b3f3f0cbc",
+      "type": "datapunt",
+      "x": 8580.0,
+      "y": 9050.0,
+      "room_id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "circuit": "G4",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "b21fe2d6-788a-4133-bff1-082a3fff43a8",
+      "type": "wandcontactdoos",
+      "x": 6000.0,
+      "y": 9140.0,
+      "room_id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "circuit": "G4",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "5bf99b1d-0dd2-4611-a49f-9b290e9e5c14",
+      "type": "lichtpunt",
+      "x": 7490.0,
+      "y": 7390.0,
+      "room_id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "circuit": "G4",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "a611e1fc-9cbb-4873-88a9-cb1c3b41c87e",
+      "type": "lichtpunt",
+      "x": 8970.0,
+      "y": 8900.0,
+      "room_id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "circuit": "G4",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    },
+    {
+      "id": "97f6e918-e355-4c0b-8e33-8edefc53d776",
+      "type": "lichtpunt",
+      "x": 6010.0,
+      "y": 7560.0,
+      "room_id": "f411f993-8b3d-47f4-9c57-4f132a56f084",
+      "circuit": "G4",
+      "confidence": 1.0,
+      "source": "vector",
+      "attributes": {
+        "synthetic": true
+      }
+    }
+  ],
+  "materials": [
+    {
+      "symbol_id": "d9d446b3-b6ac-4dfd-a87e-82ca20e98dc5",
+      "symbol_type": "datapunt",
+      "etim_code": "EC001553",
+      "description": "Data-aansluitdoos RJ45 Cat.6 UTP inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 12.8,
+      "total_price": 12.8
+    },
+    {
+      "symbol_id": "38f1db6f-ac2c-4d32-8f6d-54480ab02929",
+      "symbol_type": "datapunt",
+      "etim_code": "EC001553",
+      "description": "Data-aansluitdoos RJ45 Cat.6 UTP inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 12.8,
+      "total_price": 12.8
+    },
+    {
+      "symbol_id": "14815af9-dc32-4226-97f3-236c0acdf47e",
+      "symbol_type": "datapunt",
+      "etim_code": "EC001553",
+      "description": "Data-aansluitdoos RJ45 Cat.6 UTP inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 12.8,
+      "total_price": 12.8
+    },
+    {
+      "symbol_id": "a704f189-d596-40e2-9235-9d5b3f3f0cbc",
+      "symbol_type": "datapunt",
+      "etim_code": "EC001553",
+      "description": "Data-aansluitdoos RJ45 Cat.6 UTP inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 12.8,
+      "total_price": 12.8
+    },
+    {
+      "symbol_id": "3e5471e6-894b-4259-9092-2310763fd924",
+      "symbol_type": "lichtpunt",
+      "etim_code": "EC001714",
+      "description": "LED-inbouwspot 6W 3000K IP20",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 14.9,
+      "total_price": 14.9
+    },
+    {
+      "symbol_id": "3d379de5-1c15-4465-a737-d4f31786e0b4",
+      "symbol_type": "lichtpunt",
+      "etim_code": "EC001714",
+      "description": "LED-inbouwspot 6W 3000K IP20",
+      "quantity": 2,
+      "unit": "st",
+      "unit_price": 14.9,
+      "total_price": 29.8
+    },
+    {
+      "symbol_id": "3a2f212f-1d75-4c6a-a45d-b666e619082c",
+      "symbol_type": "lichtpunt",
+      "etim_code": "EC001714",
+      "description": "LED-inbouwspot 6W 3000K IP20",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 14.9,
+      "total_price": 14.9
+    },
+    {
+      "symbol_id": "5bf99b1d-0dd2-4611-a49f-9b290e9e5c14",
+      "symbol_type": "lichtpunt",
+      "etim_code": "EC001714",
+      "description": "LED-inbouwspot 6W 3000K IP20",
+      "quantity": 3,
+      "unit": "st",
+      "unit_price": 14.9,
+      "total_price": 44.7
+    },
+    {
+      "symbol_id": "ancillary",
+      "symbol_type": "onbekend",
+      "etim_code": "EC000191",
+      "description": "Aardlekschakelaar 40A 30mA 2P type-A",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 38.0,
+      "total_price": 38.0
+    },
+    {
+      "symbol_id": "ancillary",
+      "symbol_type": "onbekend",
+      "etim_code": "EC000196",
+      "description": "Inbouwdoos enkelvoudig ø60mm kunststof",
+      "quantity": 23,
+      "unit": "st",
+      "unit_price": 0.45,
+      "total_price": 10.35
+    },
+    {
+      "symbol_id": "ancillary",
+      "symbol_type": "onbekend",
+      "etim_code": "EC000189",
+      "description": "Installatieautomaat B16A 1P+N 6kA",
+      "quantity": 4,
+      "unit": "st",
+      "unit_price": 12.5,
+      "total_price": 50.0
+    },
+    {
+      "symbol_id": "ancillary",
+      "symbol_type": "onbekend",
+      "etim_code": "EC000233",
+      "description": "Installatiekabel NYM-J 3×1,5mm² grijs (p.m.)",
+      "quantity": 61,
+      "unit": "m",
+      "unit_price": 1.05,
+      "total_price": 64.58
+    },
+    {
+      "symbol_id": "ancillary",
+      "symbol_type": "onbekend",
+      "etim_code": "EC001489",
+      "description": "UTP-kabel Cat.6 4×2×0,5 LSZH (p.m.)",
+      "quantity": 20,
+      "unit": "m",
+      "unit_price": 0.65,
+      "total_price": 13.0
+    },
+    {
+      "symbol_id": "ae80a355-92ac-4d22-ae0b-901129264ed0",
+      "symbol_type": "schakelaar",
+      "etim_code": "EC000194",
+      "description": "Enkelpolige schakelaar 10AX 250V inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 6.75,
+      "total_price": 6.75
+    },
+    {
+      "symbol_id": "f58f1a6b-0ed1-4d68-833f-52030969425e",
+      "symbol_type": "schakelaar",
+      "etim_code": "EC000194",
+      "description": "Enkelpolige schakelaar 10AX 250V inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 6.75,
+      "total_price": 6.75
+    },
+    {
+      "symbol_id": "2c9354d6-95bf-416b-8b79-fe17f967c28e",
+      "symbol_type": "schakelaar",
+      "etim_code": "EC000194",
+      "description": "Enkelpolige schakelaar 10AX 250V inbouw",
+      "quantity": 2,
+      "unit": "st",
+      "unit_price": 6.75,
+      "total_price": 13.5
+    },
+    {
+      "symbol_id": "fe9eb76d-6d0e-4579-97f8-8c0b4a9b1233",
+      "symbol_type": "schakelaar",
+      "etim_code": "EC000194",
+      "description": "Enkelpolige schakelaar 10AX 250V inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 6.75,
+      "total_price": 6.75
+    },
+    {
+      "symbol_id": "f23b61c9-36e5-4a5a-a06a-a761c1190ff6",
+      "symbol_type": "verdeler",
+      "etim_code": "EC000334",
+      "description": "Verdeelkast 24-modules AP/IP40 met DIN-rail",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 68.0,
+      "total_price": 68.0
+    },
+    {
+      "symbol_id": "f921fe3a-2e23-49b7-8570-01737866cf0c",
+      "symbol_type": "wandcontactdoos",
+      "etim_code": "EC000195",
+      "description": "Wandcontactdoos 2P+A 16A 230V inbouw",
+      "quantity": 2,
+      "unit": "st",
+      "unit_price": 8.5,
+      "total_price": 17.0
+    },
+    {
+      "symbol_id": "41339e46-8c20-4e94-a575-95a7adeabb07",
+      "symbol_type": "wandcontactdoos",
+      "etim_code": "EC000195",
+      "description": "Wandcontactdoos 2P+A 16A 230V inbouw",
+      "quantity": 2,
+      "unit": "st",
+      "unit_price": 8.5,
+      "total_price": 17.0
+    },
+    {
+      "symbol_id": "732aa9fb-47a0-42ba-8af4-e18cb3176e55",
+      "symbol_type": "wandcontactdoos",
+      "etim_code": "EC000195",
+      "description": "Wandcontactdoos 2P+A 16A 230V inbouw",
+      "quantity": 2,
+      "unit": "st",
+      "unit_price": 8.5,
+      "total_price": 17.0
+    },
+    {
+      "symbol_id": "b21fe2d6-788a-4133-bff1-082a3fff43a8",
+      "symbol_type": "wandcontactdoos",
+      "etim_code": "EC000195",
+      "description": "Wandcontactdoos 2P+A 16A 230V inbouw",
+      "quantity": 1,
+      "unit": "st",
+      "unit_price": 8.5,
+      "total_price": 8.5
+    }
+  ],
+  "warnings": [],
+  "meta": {
+    "synthetic": true,
+    "seed": 905
+  }
+}
