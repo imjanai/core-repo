@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from apps.api.core.config import settings
+from apps.shared.config import settings
 from apps.api.core.database import engine, Base
 from apps.api.routers import projects, materials, corrections, health, pipeline
 

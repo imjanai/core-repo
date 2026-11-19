@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.api.core.database import get_db
-from apps.api.models.db import CorrectionRow, ProjectRow
+from apps.shared.models import CorrectionRow, ProjectRow
 from packages.schema import Correction, CorrectionAction, SymbolType
 
 router = APIRouter()

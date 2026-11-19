@@ -9,7 +9,7 @@ from pathlib import Path
 import boto3
 from botocore.exceptions import ClientError
 
-from apps.api.core.config import settings
+from apps.shared.config import settings
 
 
 def _make_client():

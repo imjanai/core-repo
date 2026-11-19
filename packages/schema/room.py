@@ -1,7 +1,5 @@
-from pydantic import BaseModel, Field
-from enum import Enum
+"""Compatibiliteitsimports voor het gedeelde schema."""
 
-class Room(BaseModel):
-    id: str
-    name: str
-    polygon: list[tuple[float, float]]
+from packages.schema import Room
+
+__all__ = ["Room"]

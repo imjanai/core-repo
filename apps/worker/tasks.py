@@ -23,15 +23,14 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timedelta, timezone
 
-from functools import lru_cache
-
 from celery import states
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from apps.api.core.config import settings
-from apps.api.models.db import PipelineRunRow, ProjectRow, row_to_run
-from apps.worker.celery_app import celery_app
+from apps.shared.config import settings
+from apps.shared.database import get_sync_engine as get_engine
+from apps.shared.models import PipelineRunRow, ProjectRow, row_to_run
+from apps.shared.queue import REAP_STUCK_RUNS, RESUME_PIPELINE, RUN_PIPELINE, celery_app
 from apps.worker.loader import ProjectResultSink, S3SourceLoader
 from apps.worker.store import SqlCheckpointStore
 from packages.pipeline import (
@@ -56,13 +55,6 @@ _RETRYABLE_STAGES = 3  # standaardpogingen per stage; override via PipelineOptio
 # ---------------------------------------------------------------------------
 # Infrastructuur-hulpjes
 # ---------------------------------------------------------------------------
-
-
-@lru_cache(maxsize=1)
-def get_engine():
-    """Synchrone SQLAlchemy-engine (één per workerproces)."""
-    url = settings.database_url.replace("+asyncpg", "+psycopg2")
-    return create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=5)
 
 
 def _store(engine) -> SqlCheckpointStore:
@@ -146,7 +138,7 @@ def build_context(
 
 @celery_app.task(
     bind=True,
-    name="elektro_ai.run_pipeline",
+    name=RUN_PIPELINE,
     max_retries=2,
     default_retry_delay=60,
     acks_late=True,
@@ -264,7 +256,7 @@ def _claim_for_resume(store: SqlCheckpointStore, run) -> bool:
 
 @celery_app.task(
     bind=True,
-    name="elektro_ai.resume_pipeline",
+    name=RESUME_PIPELINE,
     max_retries=2,
     default_retry_delay=60,
     acks_late=True,
@@ -318,7 +310,7 @@ def resume_pipeline(self, run_id: str):
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(name="elektro_ai.reap_stuck_runs")
+@celery_app.task(name=REAP_STUCK_RUNS)
 def reap_stuck_runs():
     """
     Ruimt runs op die geen levende worker meer hebben.

@@ -1,9 +1,9 @@
 """apps/api/core/database.py — async SQLAlchemy engine + sessie-factory."""
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase
 
-from apps.api.core.config import settings
+from apps.shared.config import settings
+from apps.shared.database import Base as Base
 
 engine = create_async_engine(
     settings.database_url,
@@ -18,10 +18,6 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False,
     class_=AsyncSession,
 )
-
-
-class Base(DeclarativeBase):
-    pass
 
 
 async def get_db() -> AsyncSession:  # type: ignore[return]

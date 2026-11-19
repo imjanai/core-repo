@@ -17,10 +17,10 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.api.core.config import settings
+from apps.shared.config import settings
 from apps.api.core.database import get_db
-from apps.api.models.db import PipelineRunRow, row_to_run
-from apps.worker.tasks import resume_pipeline
+from apps.shared.models import PipelineRunRow, row_to_run
+from apps.api.pipeline_dispatch import resume_pipeline
 from packages.pipeline import RunState
 
 router = APIRouter()

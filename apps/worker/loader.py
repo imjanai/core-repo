@@ -15,8 +15,8 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from apps.api.core.config import settings
-from apps.api.models.db import ProjectRow
+from apps.shared.config import settings
+from apps.shared.models import ProjectRow
 from packages.pipeline.stage import ResultSink
 from packages.pipeline.types import PipelineRun
 from packages.schema import FileType, Project, ProjectStatus

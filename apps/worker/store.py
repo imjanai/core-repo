@@ -15,24 +15,14 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from sqlalchemy import create_engine, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session, sessionmaker
 
-from apps.api.core.config import settings
-from apps.api.models.db import PipelineRunRow, row_to_run, run_to_row
+from apps.shared.database import get_sync_engine
+from apps.shared.models import PipelineRunRow, row_to_run, run_to_row
 from packages.pipeline.types import PipelineRun
 
 logger = logging.getLogger("imjan.worker.store")
-
-
-def _sync_url() -> str:
-    # De API gebruikt asyncpg; een Celery-worker is synchroon.
-    return settings.database_url.replace("+asyncpg", "+psycopg2")
-
-
-def get_sync_engine():
-    """Één engine per workerproces (verbindingen worden gepoold)."""
-    return create_engine(_sync_url(), pool_pre_ping=True, pool_size=5, max_overflow=5)
 
 
 class SqlCheckpointStore:

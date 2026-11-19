@@ -8,7 +8,7 @@ werken:
 
     from apps.api.tasks import run_pipeline, celery_app
 
-Nieuwe code importeert rechtstreeks uit `apps.worker.tasks`.
+De API gebruikt `apps.api.pipeline_dispatch` om opdrachten te publiceren.
 """
 
 from __future__ import annotations

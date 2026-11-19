@@ -6,11 +6,11 @@ from pydantic import BaseModel
 from sqlalchemy import select, func, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from apps.api.core.config import settings
+from apps.shared.config import settings
 from apps.api.core.database import get_db
 from apps.api.core.storage import upload_file, generate_presigned_url
-from apps.api.models.db import ProjectRow
-from apps.api.tasks import run_pipeline
+from apps.shared.models import ProjectRow
+from apps.api.pipeline_dispatch import run_pipeline
 from packages.schema import FileType, Project, ProjectStatus
 
 router = APIRouter()

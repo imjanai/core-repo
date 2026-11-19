@@ -9,8 +9,8 @@ from alembic import context
 from sqlalchemy.ext.asyncio import create_async_engine
 
 # Importeer alle ORM-modellen zodat Base.metadata ze kent
-from apps.api.core.database import Base
-from apps.api.models.db import ProjectRow, CorrectionRow  # noqa: F401
+from apps.shared.database import Base
+from apps.shared.models import ProjectRow, CorrectionRow  # noqa: F401
 
 config = context.config
 if config.config_file_name:
@@ -26,7 +26,7 @@ def do_run_migrations(connection):
 
 
 async def run_migrations_online():
-    from apps.api.core.config import settings
+    from apps.shared.config import settings
 
     engine = create_async_engine(settings.database_url)
     async with engine.connect() as conn:
