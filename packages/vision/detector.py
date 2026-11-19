@@ -68,6 +68,7 @@ def detect_symbols(data: bytes, project: Project) -> list[Symbol]:
     model_path = os.environ.get("DETECTOR_MODEL_PATH", "models/detector.pt")
     img_np = _load_image_np(data)
     if img_np is None:
+        project.meta["detector_backend"] = "invalid_image"
         logger.warning("No valid image decoded for detector stage.")
         return []
 
@@ -112,9 +113,12 @@ def detect_symbols(data: bytes, project: Project) -> list[Symbol]:
                             },
                         )
                     )
+            project.meta["detector_backend"] = "ultralytics_yolo"
             return symbols
         except Exception as exc:
             logger.warning("YOLO model prediction error: %s. Falling back to heuristic.", exc)
+
+    project.meta["detector_backend"] = "heuristic_cv"
 
     # 2. Robust heuristic fallback (detects standard circuit geometric markers)
     gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)

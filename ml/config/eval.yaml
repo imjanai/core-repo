@@ -5,11 +5,13 @@ evaluation:
   dataset_path: "ml/data/golden"
   batch_size: 1
   device: "auto"
+  raster_tolerance_px: 12
+  vector_tolerance_mm: 100
 
 gates:
   # Level 1: Detection Gates
-  min_map50: 0.85
-  max_map50_drop: 0.00        # Zero regression allowed on mAP@50
+  min_symbol_f1: 0.85
+  max_symbol_f1_drop: 0.00
 
   # Level 2: Counting Gates
   max_avg_count_error: 1.5    # Max 1.5 missing/extra symbols per blueprint

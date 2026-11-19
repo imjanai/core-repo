@@ -1,7 +1,7 @@
 """
 ml/eval/metrics.py — 4-Level Evaluation Metric Engine.
 Implements the 4 evaluation tiers from doc/069-metrics.md:
-  Level 1: Detection (mAP@50, mAP@50-95, precision, recall per symbol class)
+  Level 1: Point detection (precision, recall, F1, and errors per drawing)
   Level 2: Counting (|pred - gt| per class, total count error, % perfect drawings)
   Level 3: Outcome (material bill quantity error, cost error in €, % cost difference)
   Level 4: Review pass-through (% drawings without human corrections, average corrections)
@@ -13,18 +13,8 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any
 
+from ml.eval.detection import Level1DetectionMetrics
 from packages.schema import Project, Symbol, SymbolType
-
-
-@dataclass
-class Level1DetectionMetrics:
-    precision_per_class: dict[str, float] = field(default_factory=dict)
-    recall_per_class: dict[str, float] = field(default_factory=dict)
-    map50_per_class: dict[str, float] = field(default_factory=dict)
-    mean_map50: float = 0.0
-    mean_map50_95: float = 0.0
-    mean_precision: float = 0.0
-    mean_recall: float = 0.0
 
 
 @dataclass
@@ -61,25 +51,38 @@ class FullEvaluationReport:
     level4: Level4WorkflowMetrics
     promotion_eligible: bool
     rejection_reasons: list[str] = field(default_factory=list)
+    settings: dict[str, Any] = field(default_factory=dict)
 
     def to_markdown(self) -> str:
         res = [
             f"# Evaluatierapport: {self.model_version}",
             f"**Dataset:** {self.dataset_version}",
             "",
-            "## Niveau 1 — Detectie (Raster & VLM)",
-            f"- **mAP@50:** {self.level1.mean_map50:.3f}",
-            f"- **mAP@50-95:** {self.level1.mean_map50_95:.3f}",
-            f"- **Precisie:** {self.level1.mean_precision:.3f}",
-            f"- **Recall:** {self.level1.mean_recall:.3f}",
+            *[f"- **{key}:** {value}" for key, value in self.settings.items()],
             "",
-            "| Symboolklasse | mAP@50 | Precisie | Recall |",
-            "|---|---|---|---|",
+            "## Niveau 1 — Symboolpositie en type",
+            "Een match vereist hetzelfde symbooltype en een positie binnen de ingestelde afstand.",
+            f"- **Precisie:** {self.level1.overall.precision:.3f}",
+            f"- **Recall:** {self.level1.overall.recall:.3f}",
+            f"- **F1:** {self.level1.overall.f1:.3f}",
+            "",
+            "| Symboolklasse | Verwacht | Voorspeld | Juist | Precisie | Recall | F1 |",
+            "|---|---:|---:|---:|---:|---:|---:|",
         ]
-        for cls_name, m50 in self.level1.map50_per_class.items():
-            p = self.level1.precision_per_class.get(cls_name, 0.0)
-            r = self.level1.recall_per_class.get(cls_name, 0.0)
-            res.append(f"| {cls_name} | {m50:.3f} | {p:.3f} | {r:.3f} |")
+        for name, counts in sorted(self.level1.by_class.items()):
+            res.append(f"| {name} | {counts.expected} | {counts.predicted} | {counts.correct} | "
+                       f"{counts.precision:.3f} | {counts.recall:.3f} | {counts.f1:.3f} |")
+        if self.level1.drawings:
+            res.extend([
+                "", "### Fouten per tekening", "",
+                "| Tekening | Juist | Gemist | Valse detecties | Verkeerd type | Detector | VLM |",
+                "|---|---:|---:|---:|---:|---|---|",
+            ])
+            for drawing in self.level1.drawings:
+                name = drawing.filename.replace("|", "&#124;")
+                res.append(f"| {name} | {drawing.correct} | {len(drawing.misses)} | "
+                           f"{len(drawing.false_positives)} | {len(drawing.wrong_types)} | "
+                           f"{drawing.detector} | {drawing.vlm} |")
 
         res.extend([
             "",
@@ -92,7 +95,7 @@ class FullEvaluationReport:
             f"- **Kostenafwijking percentage:** {self.level3.avg_cost_error_pct:.2f}%",
             f"- **Totale grondwaarde:** € {self.level3.gt_total_costs:.2f} | **Voorspeld:** € {self.level3.pred_total_costs:.2f}",
             "",
-            "## Niveau 4 — Doorlaat (Review-UI)",
+            "## Niveau 4 — Geschatte reviewcorrecties",
             f"- **Tekeningen zonder correctie:** {self.level4.pct_drawings_zero_correction:.1f}%",
             f"- **Gemiddeld aantal correcties per tekening:** {self.level4.avg_corrections_per_drawing:.2f}",
             "",

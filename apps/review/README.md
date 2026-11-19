@@ -25,8 +25,8 @@ review. Vul voor prijsvergelijkingen ook de verwachte materialen in.
 uv run python ml/eval/run_eval.py --dataset ../pilot-golden --report ../pilot-eval.md
 ```
 
-Gebruik de tellingen, materiaalkosten en geschatte correcties voor de pilot.
-De huidige Level 1-detectiescores in de runner zijn voorbeeldwaarden.
+De runner meet ook symboolprecisie, recall en F1 op positie en type. Voeg
+`--metrics-json ../pilot-metrics.json` toe voor de fouten per tekening.
 
 ## Revisie en bestelling
 

@@ -1,36 +1,55 @@
-# Evaluatierapport: elektro-vl
-**Dataset:** golden_v1
+# Evaluatierapport: opencv-baseline
+**Dataset:** 8fdf3f15de5d8f6ca963cc42dee88f4712cb7f05b3a0bb48eecd517981eeee2a
 
-## Niveau 1 — Detectie (Raster & VLM)
-- **mAP@50:** 0.885
-- **mAP@50-95:** 0.742
-- **Precisie:** 0.912
-- **Recall:** 0.894
+- **Rastertolerantie (px):** 12.0
+- **Vectortolerantie (mm):** 100.0
+- **Detectorbestand:** geen
+- **Detector SHA-256:** geen
+- **VLM aangevraagd:** False
+- **VLM-model:** uit
 
-| Symboolklasse | mAP@50 | Precisie | Recall |
-|---|---|---|---|
-| wandcontactdoos | 0.910 | 0.920 | 0.915 |
-| schakelaar | 0.845 | 0.880 | 0.820 |
-| lichtpunt | 0.932 | 0.940 | 0.930 |
-| datapunt | 0.860 | 0.890 | 0.840 |
-| verdeler | 0.980 | 0.990 | 0.970 |
+## Niveau 1 — Symboolpositie en type
+Een match vereist hetzelfde symbooltype en een positie binnen de ingestelde afstand.
+- **Precisie:** 0.364
+- **Recall:** 0.438
+- **F1:** 0.397
+
+| Symboolklasse | Verwacht | Voorspeld | Juist | Precisie | Recall | F1 |
+|---|---:|---:|---:|---:|---:|---:|
+| datapunt | 36 | 0 | 0 | 0.000 | 0.000 | 0.000 |
+| lichtpunt | 38 | 0 | 0 | 0.000 | 0.000 | 0.000 |
+| schakelaar | 24 | 116 | 24 | 0.207 | 1.000 | 0.343 |
+| verdeler | 6 | 0 | 0 | 0.000 | 0.000 | 0.000 |
+| wandcontactdoos | 40 | 57 | 39 | 0.684 | 0.975 | 0.804 |
+
+### Fouten per tekening
+
+| Tekening | Juist | Gemist | Valse detecties | Verkeerd type | Detector | VLM |
+|---|---:|---:|---:|---:|---|---|
+| synth-golden-001.png | 12 | 0 | 7 | 12 | heuristic_cv | disabled |
+| synth-golden-002.png | 9 | 1 | 6 | 14 | heuristic_cv | disabled |
+| synth-golden-003.png | 8 | 2 | 6 | 14 | heuristic_cv | disabled |
+| synth-golden-004.png | 9 | 2 | 5 | 13 | heuristic_cv | disabled |
+| synth-golden-005.png | 13 | 1 | 6 | 10 | heuristic_cv | disabled |
+| synth-golden-006.png | 12 | 1 | 6 | 11 | heuristic_cv | disabled |
 
 ## Niveau 2 — Telling per tekening
-- **Gemiddelde tellingfout:** 20.67 symbolen/tekening
+- **Gemiddelde tellingfout:** 31.50 symbolen/tekening
 - **Perfecte tekeningen (fout = 0):** 0.0% (0/6)
 
 ## Niveau 3 — Uitkomst (Materiaallijst & Kosten)
-- **Gemiddelde materiaalkostenfout:** € 297.90
-- **Kostenafwijking percentage:** 59.56%
-- **Totale grondwaarde:** € 2994.81 | **Voorspeld:** € 1207.41
+- **Gemiddelde materiaalkostenfout:** € 184.26
+- **Kostenafwijking percentage:** 36.80%
+- **Totale grondwaarde:** € 2994.81 | **Voorspeld:** € 1889.26
 
-## Niveau 4 — Doorlaat (Review-UI)
+## Niveau 4 — Geschatte reviewcorrecties
 - **Tekeningen zonder correctie:** 0.0%
-- **Gemiddeld aantal correcties per tekening:** 20.67
+- **Gemiddeld aantal correcties per tekening:** 19.50
 
 ---
 ### Promotiebesluit: [FAIL] AFGEKEURD
 
 **Afwijzingsredenen:**
-- Level 2: Tellingfout (20.67) > drempel (1.50)
-- Level 3: Kostenfout (59.56%) > drempel (2.50%)
+- Symbool-F1 (0.397) < drempel (0.850)
+- Level 2: Tellingfout (31.50) > drempel (1.50)
+- Level 3: Kostenfout (36.80%) > drempel (2.50%)
