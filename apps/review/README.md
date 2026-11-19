@@ -43,3 +43,8 @@ verpakking en eventueel een prijs per verpakking in. De CSV rondt naar hele
 verpakkingen af en gaat uit van de huidige beoordeelde materiaallijst. De
 leveranciersinstellingen worden lokaal in de browser bewaard. De CSV heeft
 een vaste kolomindeling en kan zo nodig worden aangepast aan de leverancier.
+
+Gebruik **Projectbibliotheek** om eerdere DXF-projecten te zoeken op
+bestandsnaam of analysestatus. Kies twee afgeronde projecten als vorige
+en huidige tekening om ze direct te vergelijken. Bij elke symboolcorrectie
+kun je een opmerking opslaan. Je vindt die terug in **Correctiegeschiedenis**.

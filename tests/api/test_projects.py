@@ -381,3 +381,27 @@ async def test_revision_compares_and_carries_only_clear_corrections(client):
     again = await client.post(f"{revision}/carry", params=params)
     assert again.json()["applied"] == 0
     assert again.json()["already_reviewed"] == 1
+
+@pytest.mark.asyncio
+async def test_library_filters_literal_names_and_does_not_sign_downloads(client):
+    from apps.shared.models import ProjectRow
+
+    async with TestSessionLocal() as db:
+        for name, file_type, project_status in [
+            ("Plan_100%.dxf", "dxf", "done"),
+            ("PlanX100-extra.dxf", "dxf", "done"),
+            ("Plan_100%.pdf", "pdf", "done"),
+            ("Plan_100% revised.dxf", "dxf", "failed"),
+        ]:
+            db.add(ProjectRow(name=name, file_type=file_type, status=project_status, s3_key="source"))
+        await db.commit()
+
+    with patch("apps.api.routers.projects.generate_presigned_url", new_callable=AsyncMock) as sign:
+        result = await client.get("/projects", params={
+            "q": "PLAN_100%", "file_type": "dxf", "status": "done",
+            "include_download_url": "false", "page_size": 1,
+        })
+    assert result.status_code == 200, result.text
+    assert result.json()["total"] == 1
+    assert [project["name"] for project in result.json()["items"]] == ["Plan_100%.dxf"]
+    sign.assert_not_awaited()

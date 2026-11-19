@@ -135,16 +135,29 @@ async def list_projects(
     db: Annotated[AsyncSession, Depends(get_db)],
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    q: str = Query("", max_length=255),
+    file_type: FileType | None = None,
+    project_status: ProjectStatus | None = Query(None, alias="status"),
+    include_download_url: bool = True,
 ):
     """Geeft een gepagineerde lijst van alle projecten, nieuwste eerst."""
     offset = (page - 1) * page_size
 
-    total_result = await db.execute(select(func.count()).select_from(ProjectRow))
+    filters = []
+    if q.strip():
+        filters.append(ProjectRow.name.icontains(q.strip(), autoescape=True))
+    if file_type is not None:
+        filters.append(ProjectRow.file_type == file_type.value)
+    if project_status is not None:
+        filters.append(ProjectRow.status == project_status.value)
+
+    total_result = await db.execute(select(func.count()).select_from(ProjectRow).where(*filters))
     total: int = total_result.scalar_one()
 
     rows_result = await db.execute(
         select(ProjectRow)
-        .order_by(ProjectRow.created_at.desc())
+        .where(*filters)
+        .order_by(ProjectRow.created_at.desc(), ProjectRow.id.desc())
         .offset(offset)
         .limit(page_size)
     )
@@ -153,7 +166,7 @@ async def list_projects(
     items: list[ProjectSummary] = []
     for row in rows:
         url = None
-        if row.s3_key:
+        if include_download_url and row.s3_key:
             url = await generate_presigned_url(row.s3_key)
         items.append(
             ProjectSummary(

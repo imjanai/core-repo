@@ -17,6 +17,33 @@
         <div class="row"><input id="file" type="file" accept=".dxf" required><button class="primary" id="start">Analyse starten</button></div>
       </form>
     </section>
+    <details id="library" class="panel library">
+      <summary>Projectbibliotheek</summary>
+      <div class="panel-body">
+        <form id="library-search" class="row">
+          <div class="field"><label for="library-query">Bestandsnaam</label><input id="library-query" type="search" maxlength="255"></div>
+          <div class="field"><label for="library-filter">Analysestatus</label><select id="library-filter">
+            <option value="">Alle statussen</option>
+            <option value="done">Klaar</option>
+            <option value="processing">Bezig</option>
+            <option value="uploaded">In wachtrij</option>
+            <option value="failed">Mislukt</option>
+          </select></div>
+          <button>Zoeken</button>
+        </form>
+        <p id="library-status" role="status"></p>
+        <div class="table-scroll"><table>
+          <thead><tr><th>Project</th><th>Geüpload</th><th>Status</th><th>Selecteren</th></tr></thead>
+          <tbody id="library-projects"></tbody>
+        </table></div>
+        <div class="row library-controls">
+          <button id="library-back">Vorige pagina</button><span id="library-page"></span><button id="library-next">Volgende pagina</button>
+        </div>
+        <div class="row library-controls">
+          <button class="primary" id="library-compare" disabled>Vergelijken</button><span id="library-selection">Kies de vorige en huidige tekening.</span>
+        </div>
+      </div>
+    </details>
     <p id="status" role="status" hidden></p>
     <section id="workspace" class="workspace" hidden>
       <div class="panel drawing">
@@ -40,10 +67,18 @@
             <div class="field"><label for="x">X (mm)</label><input id="x" type="number" step="any" required></div>
             <div class="field"><label for="y">Y (mm)</label><input id="y" type="number" step="any" required></div>
           </div>
+          <div class="field"><label for="correction-note">Opmerking (optioneel)</label><input id="correction-note" maxlength="500"></div>
           <div class="row actions"><button class="primary" id="save">Opslaan</button><button type="button" id="cancel" hidden>Annuleren</button><button type="button" id="remove" class="danger">Verwijderen</button></div>
         </form>
       </aside>
     </section>
+    <details id="history" class="panel library" hidden>
+      <summary>Correctiegeschiedenis <span id="history-count"></span></summary>
+      <div class="panel-body">
+        <p id="history-status" role="status"></p>
+        <ol id="history-items" class="change-list"></ol>
+      </div>
+    </details>
     <section id="revision-tools" class="panel materials" hidden>
       <header class="panel-head"><h2>Revisies</h2></header>
       <form id="revision-upload" class="panel-body">

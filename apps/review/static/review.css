@@ -55,3 +55,12 @@ th { font-size: .875rem; color: var(--muted); }
 #purchasing input { width: 8rem; }
 #purchasing form > button { margin-top: .8rem; }
 #revision-error:empty { display: none; }
+
+.library { margin-bottom: 1rem; }
+.library summary { cursor: pointer; font-weight: 650; padding: .8rem 1rem; }
+.library[open] summary { border-bottom: 1px solid var(--border); }
+.library-controls { margin-top: .8rem; }
+.library td:last-child { text-align: left; }
+#library-search { align-items: end; margin-bottom: .7rem; }
+#library-status:empty { display: none; }
+.library button[aria-pressed="true"] { background: var(--accent); color: white; }

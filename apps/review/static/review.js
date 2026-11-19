@@ -1,4 +1,5 @@
 import { DrawingViewer } from "./drawing.js";
+import { mountLibrary } from "./library.js";
 import { Purchasing } from "./purchasing.js";
 import { renderComparison } from "./revision.js";
 
@@ -29,6 +30,8 @@ async function request(url, options) {
   }
   return data;
 }
+
+mountLibrary($("library"), request);
 
 function status(message = "", error = false) {
   $("status").textContent = message;
@@ -90,7 +93,35 @@ async function refreshReview() {
   selectSymbol(symbols.some(symbol => symbol.id === state.selected) ? state.selected : null);
   renderMaterials(materials);
   purchasing.render(materials.items);
-  await refreshComparison();
+  await Promise.all([refreshComparison(), refreshHistory()]);
+}
+
+async function refreshHistory() {
+  const history = $("history");
+  const list = $("history-items");
+  const labels = { add: "Toegevoegd", remove: "Verwijderd", change_type: "Type gewijzigd", move: "Verplaatst" };
+  const dates = new Intl.DateTimeFormat("nl-BE", { dateStyle: "short", timeStyle: "short" });
+  list.replaceChildren();
+  $("history-count").textContent = "";
+  try {
+    const corrections = await request(projectUrl("/corrections"));
+    $("history-count").textContent = `(${corrections.length})`;
+    $("history-status").textContent = corrections.length ? "" : "Er zijn nog geen correcties.";
+    for (const correction of corrections.toReversed()) {
+      const row = document.createElement("li");
+      const timestamp = new Date(correction.created_at);
+      const position = correction.new_x === null || correction.new_y === null
+        ? "" : `${correction.new_x}, ${correction.new_y} mm`;
+      row.textContent = [
+        Number.isNaN(timestamp.valueOf()) ? "" : dates.format(timestamp),
+        labels[correction.action], correction.new_type, position, correction.comment,
+      ].filter(Boolean).join(" · ");
+      list.append(row);
+    }
+  } catch (error) {
+    $("history-status").textContent = error.message;
+  }
+  history.hidden = false;
 }
 
 function inspectChange(symbol, id) {
@@ -125,6 +156,7 @@ function selectSymbol(id) {
   $("symbols").value = state.selected ?? "";
   $("edit").hidden = !symbol;
   $("cancel").hidden = true;
+  $("correction-note").value = "";
   $("remove").hidden = !symbol;
   if (symbol) {
     $("edit-title").textContent = "Symbool wijzigen";
@@ -143,6 +175,8 @@ async function openProject(project, previousId = null) {
   state.previousId = previousId;
   viewer.changes = [];
   $("revision-tools").hidden = true;
+  $("history").hidden = true;
+  $("history").open = false;
   $("revision-comparison").hidden = true;
   $("revision-error").textContent = "";
   $("carry-status").textContent = "";
@@ -286,7 +320,7 @@ async function saveCorrection(correction) {
     const result = await request(projectUrl("/corrections?review=true"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(correction),
+      body: JSON.stringify({ ...correction, comment: $("correction-note").value.trim() }),
     });
     saved = true;
     if (correction.action === "add") state.selected = result.id;
