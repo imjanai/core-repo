@@ -53,3 +53,22 @@ Een match vereist hetzelfde symbooltype en een positie binnen de ingestelde afst
 - Symbool-F1 (0.397) < drempel (0.850)
 - Level 2: Tellingfout (31.50) > drempel (1.50)
 - Level 3: Kostenfout (36.80%) > drempel (2.50%)
+
+## Experiment met rasterclassificatie en tegeldetectie
+
+Evaluatie op dezelfde zes synthetische golden tekeningen, met OpenCV als
+kandidaatdetector. De classifier is getraind op 2.114 crops uit 24 apart
+gegenereerde tekeningen, inclusief achtergrondcrops. De classifierdrempel
+was 0,65. Tegels waren 512 px breed met 96 px overlap.
+
+| Configuratie | F1 | Juiste matches | Verkeerd type |
+|---|---:|---:|---:|
+| OpenCV, volledige afbeelding | 0,397 | 63 | 74 |
+| OpenCV en classifier | 0,961 | 135 | 2 |
+| OpenCV met tegels | 0,397 | 63 | 74 |
+| OpenCV met tegels en classifier | 0,961 | 135 | 2 |
+
+De classifier haalde de symbool-F1-drempel. De gemiddelde tellingfout van
+1,83 en de kostenafwijking van 32,87% overschreden de promotiedrempels. De
+score is gemeten op synthetische tekeningen. Er is in dit experiment geen
+YOLO-checkpoint, VLM of praktijkdataset gebruikt.

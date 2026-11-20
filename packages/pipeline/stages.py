@@ -37,6 +37,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import logging
+import os
 from typing import Any, Callable
 
 from packages.schema import FileType, Project, SourceType, Symbol, ValidationWarning
@@ -133,22 +134,12 @@ def _tile_grid(width: int, height: int, tile: int = 1024, overlap: int = 128) ->
     """Tegelraster voor de detector — puur rekenen, geen beeldbibliotheek nodig."""
     if width <= 0 or height <= 0 or tile <= 0:
         return []
-    step = max(tile - overlap, 1)
+    overlap = min(max(overlap, 0), tile - 1)
+    step = tile - overlap
     tiles = []
-    y = 0
-    while y < height:
-        x = 0
-        while x < width:
-            tiles.append(
-                {
-                    "x": x,
-                    "y": y,
-                    "w": min(tile, width - x),
-                    "h": min(tile, height - y),
-                }
-            )
-            x += step
-        y += step
+    for y in range(0, max(1, height - overlap), step):
+        for x in range(0, max(1, width - overlap), step):
+            tiles.append({"x": x, "y": y, "w": min(tile, width - x), "h": min(tile, height - y)})
     return tiles
 
 
@@ -340,7 +331,9 @@ def detect_symbols(ctx: StageContext) -> None:
         "detector",
     )
     data = ctx.load_source()
-    found = detect(data, ctx.project)
+    tiled = ctx.options.get("detector_tiled", os.environ.get("DETECTOR_TILED") == "1")
+    tiles = ctx.payload.get("tiles", []) if tiled else []
+    found = detect(data, ctx.project, tiles=tiles) if tiles else detect(data, ctx.project)
     _absorb_symbols(ctx, found, source="detector")
 
 
@@ -412,6 +405,20 @@ def fuse_stage(ctx: StageContext) -> None:
     raw = FusionConfig(**(ctx.options.get("fusion") or {}))
     _, stats = fuse(ctx.project, raw)
     ctx.payload["fusion"] = stats.as_dict()
+    classifier = ctx.options.get("symbol_classifier", os.environ.get("SYMBOL_CLASSIFIER_PATH"))
+    if classifier and ctx.project.file_type == FileType.IMAGE:
+        try:
+            from packages.vision.classifier import classify_candidates
+
+            threshold = float(ctx.options.get("classifier_threshold", os.environ.get("SYMBOL_CLASSIFIER_THRESHOLD", "0.65")))
+            ctx.project.symbols, summary = classify_candidates(
+                ctx.load_source(), ctx.project.symbols, classifier, threshold, ctx.project.scale,
+            )
+            ctx.project.meta["symbol_classifier"] = {"status": "applied", **summary}
+        except (OSError, ValueError, ImportError, KeyError) as error:
+            logger.warning("Symbol classifier unavailable: %s", error)
+            ctx.project.meta["symbol_classifier"] = {"status": "unavailable"}
+
     # De ruwe bytes zijn nu overbodig; checkpoint en geheugen blijven klein.
     ctx.forget_source()
 

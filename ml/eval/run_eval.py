@@ -54,6 +54,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gate", action="store_true", default=False, help="Enforce regression gate (exit 1 if failed)")
     parser.add_argument("--metrics-json", type=Path, help="Save coordinates of each detection error")
     parser.add_argument("--detector-weights", type=Path, help="Detector checkpoint to evaluate")
+    parser.add_argument("--classifier", type=Path, help="Symbol classifier checkpoint (.npz)")
+    parser.add_argument("--classifier-threshold", type=float, default=0.65)
+    parser.add_argument("--tiled", action="store_true", help="Run detector on overlapping tiles")
+    parser.add_argument("--tile-size", type=int, default=1024)
+    parser.add_argument("--tile-overlap", type=int, default=128)
     parser.add_argument("--enable-vlm", action="store_true", default=False, help="Enable VLM inference in evaluation")
     return parser.parse_args()
 
@@ -82,7 +87,7 @@ def load_golden_pairs(dataset_path: str | Path) -> list[tuple[bytes, Project, st
 
 
 def run_pipeline_on_image(
-    img_bytes: bytes, filename: str, vlm_enabled: bool = False, *, raster_scale: float = 1.0,
+    img_bytes: bytes, filename: str, vlm_enabled: bool = False, *, raster_scale: float = 1.0, detector_options: dict | None = None,
 ) -> Project:
     """Runs default end-to-end pipeline on an image."""
     pipeline = build_default_pipeline()
@@ -90,7 +95,7 @@ def run_pipeline_on_image(
     ctx = StageContext(
         project=proj,
         payload={"filename": filename, "source_bytes": img_bytes, "scale_hint": raster_scale},
-        options=PipelineOptions(strict=False, extra={"vlm_enabled": vlm_enabled}),
+        options=PipelineOptions(strict=False, extra={"vlm_enabled": vlm_enabled, **(detector_options or {})}),
         metrics=NullMetrics(),
     )
     store = InMemoryCheckpointStore()
@@ -103,6 +108,7 @@ def evaluate(
     golden_pairs: list[tuple[bytes, Project, str]],
     config: dict[str, Any],
     vlm_enabled: bool = False,
+    detector_options: dict | None = None,
 ) -> FullEvaluationReport:
     """Runs evaluation benchmark and computes all 4 tiers of metrics."""
     predictions: list[Project] = []
@@ -121,7 +127,13 @@ def evaluate(
     if weights.is_file():
         with weights.open("rb") as stream:
             weights_hash = hashlib.file_digest(stream, "sha256").hexdigest()
+    classifier = (detector_options or {}).get("symbol_classifier")
+    classifier_hash = None
+    if classifier:
+        with Path(classifier).open("rb") as stream:
+            classifier_hash = hashlib.file_digest(stream, "sha256").hexdigest()
     level1 = Level1DetectionMetrics()
+    classifier_unavailable = []
     digest = hashlib.sha256()
     logger.info("Evaluating %d golden test drawings...", len(golden_pairs))
     for img_bytes, gt_proj, filename in golden_pairs:
@@ -131,6 +143,7 @@ def evaluate(
             raise ValueError(f"{filename}: invalid raster calibration")
         pred_proj = run_pipeline_on_image(
             img_bytes, filename, vlm_enabled=vlm_enabled, raster_scale=scale,
+            **({"detector_options": detector_options} if detector_options is not None else {}),
         )
         predictions.append(pred_proj)
         ground_truths.append(gt_proj)
@@ -140,6 +153,11 @@ def evaluate(
             detector=pred_proj.meta.get("detector_backend", "not_run"),
             vlm=pred_proj.meta.get("vlm_status", "not_run" if vlm_enabled else "disabled"),
         )
+        drawing = level1.drawings[-1]
+        drawing.classifier = pred_proj.meta.get("symbol_classifier", {"status": "not_run"})
+        drawing.tile_count = pred_proj.meta.get("detector_tiles", 0)
+        if raster and classifier and drawing.classifier.get("status") != "applied":
+            classifier_unavailable.append(filename)
         digest.update(json.dumps([
             filename, hashlib.sha256(img_bytes).hexdigest(), scale,
             [(symbol.type.value, symbol.x, symbol.y) for symbol in gt_proj.symbols],
@@ -167,6 +185,9 @@ def evaluate(
     ):
         rejections.append("De gevraagde detectorgewichten zijn niet op alle rastertekeningen gebruikt.")
 
+    if classifier_unavailable:
+        rejections.append(f"Classifier niet uitgevoerd op: {', '.join(classifier_unavailable)}")
+
     max_cnt_err = gates.get("max_avg_count_error", 2.0)
     if level2.avg_total_count_error > max_cnt_err:
         rejections.append(f"Level 2: Tellingfout ({level2.avg_total_count_error:.2f}) > drempel ({max_cnt_err:.2f})")
@@ -189,6 +210,11 @@ def evaluate(
             "Vectortolerantie (mm)": vector_tolerance,
             "Detectorbestand": weights.name if weights_hash else "geen",
             "Detector SHA-256": weights_hash or "geen",
+            "Classifier SHA-256": classifier_hash or "geen",
+            "Classifierdrempel": (detector_options or {}).get("classifier_threshold") if classifier else "uit",
+            "Tegeldetectie": bool((detector_options or {}).get("detector_tiled")),
+            "Tegelgrootte": (detector_options or {}).get("tile_size", 1024),
+            "Tegeloverlap": (detector_options or {}).get("tile_overlap", 128),
             "VLM aangevraagd": vlm_enabled,
             "VLM-model": os.environ.get("VLLM_MODEL", "elektro-vl") if vlm_enabled else "uit",
         },
@@ -211,7 +237,18 @@ def main() -> int:
                 raise ValueError(f"Detector weights not found: {args.detector_weights}")
             os.environ["DETECTOR_MODEL_PATH"] = str(args.detector_weights.resolve())
         golden_pairs = load_golden_pairs(args.dataset)
-        report = evaluate(args.model, golden_pairs, config or {}, vlm_enabled=args.enable_vlm)
+        if not 0.5 <= args.classifier_threshold <= 1:
+            raise ValueError("Classifier threshold must be between 0.5 and 1")
+        if args.tile_size < 128 or not 0 <= args.tile_overlap < args.tile_size:
+            raise ValueError("Tile size must be at least 128 and overlap must be smaller than the tile")
+        report = evaluate(args.model, golden_pairs, config or {}, vlm_enabled=args.enable_vlm,
+                          detector_options={
+                              "symbol_classifier": str(args.classifier) if args.classifier else None,
+                              "classifier_threshold": args.classifier_threshold,
+                              "detector_tiled": args.tiled,
+                              "tile_size": args.tile_size,
+                              "tile_overlap": args.tile_overlap,
+                          })
         if args.baseline:
             baseline = json.loads(Path(args.baseline).read_text(encoding="utf-8"))
             comparable = (

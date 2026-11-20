@@ -75,14 +75,14 @@ class FullEvaluationReport:
         if self.level1.drawings:
             res.extend([
                 "", "### Fouten per tekening", "",
-                "| Tekening | Juist | Gemist | Valse detecties | Verkeerd type | Detector | VLM |",
-                "|---|---:|---:|---:|---:|---|---|",
+                "| Tekening | Juist | Gemist | Valse detecties | Verkeerd type | Detector | Tegels | Classifier | VLM |",
+                "|---|---:|---:|---:|---:|---|---:|---|---|",
             ])
             for drawing in self.level1.drawings:
                 name = drawing.filename.replace("|", "&#124;")
                 res.append(f"| {name} | {drawing.correct} | {len(drawing.misses)} | "
                            f"{len(drawing.false_positives)} | {len(drawing.wrong_types)} | "
-                           f"{drawing.detector} | {drawing.vlm} |")
+                           f"{drawing.detector} | {drawing.tile_count} | {drawing.classifier.get('status', 'not_run')} | {drawing.vlm} |")
 
         res.extend([
             "",

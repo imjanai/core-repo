@@ -5,15 +5,12 @@ Handles raster images, executes tiled inference, and converts detections to Symb
 
 from __future__ import annotations
 
-import io
 import logging
 import os
 from pathlib import Path
-from typing import Any
 
 import cv2
 import numpy as np
-from PIL import Image
 
 from packages.schema import Project, SourceType, Symbol, SymbolType
 
@@ -59,69 +56,9 @@ def _load_image_np(data: bytes) -> np.ndarray | None:
         return None
 
 
-def detect_symbols(data: bytes, project: Project) -> list[Symbol]:
-    """
-    Runs symbol detection on raster drawing bytes.
-    If a trained model checkpoint is available, uses Ultralytics / SAHI.
-    Otherwise, runs robust morphological contour candidate detection.
-    """
-    model_path = os.environ.get("DETECTOR_MODEL_PATH", "models/detector.pt")
-    img_np = _load_image_np(data)
-    if img_np is None:
-        project.meta["detector_backend"] = "invalid_image"
-        logger.warning("No valid image decoded for detector stage.")
-        return []
-
-    h, w = img_np.shape[:2]
-    symbols: list[Symbol] = []
-
-    # 1. Try running trained YOLO model if weights exist
-    if Path(model_path).exists():
-        try:
-            from ultralytics import YOLO
-
-            model = YOLO(model_path)
-            # Run inference (use CPU or GPU if available)
-            results = model.predict(source=img_np, imgsz=1024, conf=0.25, verbose=False)
-            for res in results:
-                boxes = res.boxes
-                for box in boxes:
-                    xyxy = box.xyxy[0].tolist()
-                    conf = float(box.conf[0])
-                    cls_id = int(box.cls[0])
-                    cls_name = model.names.get(cls_id, "onbekend")
-
-                    sym_type = CLASS_MAP.get(cls_name.lower())
-                    if not sym_type and 0 <= cls_id < len(INDEX_TO_CLASS):
-                        sym_type = INDEX_TO_CLASS[cls_id]
-                    if not sym_type:
-                        sym_type = SymbolType.ONBEKEND
-
-                    cx = (xyxy[0] + xyxy[2]) / 2.0
-                    cy = (xyxy[1] + xyxy[3]) / 2.0
-
-                    symbols.append(
-                        Symbol(
-                            type=sym_type,
-                            x=round(cx * project.scale, 2),
-                            y=round(cy * project.scale, 2),
-                            confidence=round(conf, 3),
-                            source=SourceType.DETECTOR,
-                            attributes={
-                                "bbox": [round(v, 1) for v in xyxy],
-                                "detector": "ultralytics_yolo",
-                            },
-                        )
-                    )
-            project.meta["detector_backend"] = "ultralytics_yolo"
-            return symbols
-        except Exception as exc:
-            logger.warning("YOLO model prediction error: %s. Falling back to heuristic.", exc)
-
-    project.meta["detector_backend"] = "heuristic_cv"
-
-    # 2. Robust heuristic fallback (detects standard circuit geometric markers)
-    gray = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
+def _heuristic(image):
+    symbols = []
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)
     contours, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -145,8 +82,8 @@ def detect_symbols(data: bytes, project: Project) -> list[Symbol]:
                 symbols.append(
                     Symbol(
                         type=inferred_type,
-                        x=round(cx * project.scale, 2),
-                        y=round(cy * project.scale, 2),
+                        x=cx,
+                        y=cy,
                         confidence=0.72,
                         source=SourceType.DETECTOR,
                         attributes={
@@ -158,5 +95,80 @@ def detect_symbols(data: bytes, project: Project) -> list[Symbol]:
                     )
                 )
 
+    return symbols
+
+
+def _yolo_symbols(model, image):
+    symbols = []
+    for result in model.predict(source=image, imgsz=1024, conf=0.25, verbose=False):
+        for box in result.boxes:
+            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            class_id = int(box.cls[0])
+            names = model.names
+            class_name = names.get(class_id, "") if isinstance(names, dict) else (
+                names[class_id] if 0 <= class_id < len(names) else ""
+            )
+            fallback = INDEX_TO_CLASS[class_id] if 0 <= class_id < len(INDEX_TO_CLASS) else SymbolType.ONBEKEND
+            symbols.append(Symbol(
+                type=CLASS_MAP.get(class_name.lower(), fallback),
+                x=(x1 + x2) / 2, y=(y1 + y2) / 2,
+                confidence=round(float(box.conf[0]), 3), source=SourceType.DETECTOR,
+                attributes={"bbox": [x1, y1, x2, y2], "detector": "ultralytics_yolo"},
+            ))
+    return symbols
+
+
+def _predict_regions(image, predict, tiles):
+    if len(tiles) <= 1:
+        return predict(image)
+    height, width = image.shape[:2]
+    symbols = []
+    boxes = []
+    for tile in tiles:
+        x, y, w, h = (tile[key] for key in ("x", "y", "w", "h"))
+        for symbol in predict(image[y:y+h, x:x+w]):
+            x1, y1, x2, y2 = symbol.attributes["bbox"]
+            if ((x > 0 and x1 <= 1) or (y > 0 and y1 <= 1)
+                or (x + w < width and x2 >= w - 1) or (y + h < height and y2 >= h - 1)):
+                continue
+            symbol.x += x
+            symbol.y += y
+            symbol.attributes["bbox"] = [x1 + x, y1 + y, x2 + x, y2 + y]
+            boxes.append([x1 + x, y1 + y, x2 - x1, y2 - y1])
+            symbols.append(symbol)
+    if not symbols:
+        return []
+    indices = cv2.dnn.NMSBoxes(boxes, [symbol.confidence for symbol in symbols], 0.0, 0.45)
+    keep = set(np.asarray(indices).reshape(-1).tolist())
+    return [symbol for index, symbol in enumerate(symbols) if index in keep]
+
+
+def detect_symbols(data: bytes, project: Project, *, tiles=()) -> list[Symbol]:
+    """Detect symbols in an image, optionally on overlapping tiles."""
+    model_path = os.environ.get("DETECTOR_MODEL_PATH", "models/detector.pt")
+    image = _load_image_np(data)
+    if image is None:
+        project.meta["detector_backend"] = "invalid_image"
+        return []
+
+    backend = "heuristic_cv"
+    symbols = None
+    if Path(model_path).exists():
+        try:
+            from ultralytics import YOLO
+
+            model = YOLO(model_path)
+            symbols = _predict_regions(image, lambda tile: _yolo_symbols(model, tile), tiles)
+            backend = "ultralytics_yolo"
+        except Exception as exc:
+            logger.warning("YOLO prediction failed; falling back to OpenCV: %s", exc)
+    if symbols is None:
+        symbols = _predict_regions(image, _heuristic, tiles)
+    project.meta["detector_backend"] = backend
+    project.meta["detector_tiles"] = max(1, len(tiles))
+    for symbol in symbols:
+        symbol.x = round(symbol.x * project.scale, 2)
+        symbol.y = round(symbol.y * project.scale, 2)
+        symbol.attributes["bbox"] = [round(value, 1) for value in symbol.attributes["bbox"]]
     logger.info("Detector identified %d symbols", len(symbols))
     return symbols

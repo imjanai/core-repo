@@ -144,7 +144,7 @@ def test_verified_crop_export_groups_revisions_and_excludes_holdout(tmp_path):
         (tmp_path / f"answer-{index}.json").write_text(annotations.model_dump_json(), encoding="utf-8")
         entries.append({
             "drawing": f"drawing-{index}.png", "reviewed": f"answer-{index}.json",
-            "project_family": family, "allow_training": consent,
+            "project_family": family, "allow_training": consent, "background_px": [[24, 24]],
         })
     manifest = tmp_path / "manifest.json"
     manifest.write_text(json.dumps({"drawings": entries, "golden_families": ["held-out"]}), encoding="utf-8")
@@ -153,10 +153,11 @@ def test_verified_crop_export_groups_revisions_and_excludes_holdout(tmp_path):
     stats = export_crops(manifest, output, crop_size=16)
 
     split = hash_project_split("work-1")
-    assert stats[split] == 2 and stats["withheld"] == 2
+    assert stats[split] == 4 and stats["withheld"] == 2
     records = [json.loads(line) for line in (output / f"{split}.jsonl").read_text(encoding="utf-8").splitlines()]
-    assert len(records) == 2 and all(record["project_family"] == "work-1" for record in records)
-    with Image.open(records[1]["image"]) as crop:
+    assert len(records) == 4 and all(record["project_family"] == "work-1" for record in records)
+    assert sum(record["label"] == "background" for record in records) == 2
+    with Image.open(records[2]["image"]) as crop:
         assert crop.size == (16, 16)
         assert crop.getpixel((8, 8)) == (40, 0, 0)
         assert crop.getpixel((0, 0)) == (255, 255, 255)

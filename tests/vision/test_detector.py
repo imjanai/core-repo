@@ -29,3 +29,21 @@ def test_detect_symbols_empty_bytes():
     proj = Project()
     res = detect_symbols(b"", proj)
     assert res == []
+
+def test_tiled_detector_restores_coordinates_and_deduplicates_overlap(monkeypatch):
+    import packages.vision.detector as detector
+
+    monkeypatch.setenv("DETECTOR_MODEL_PATH", "nonexistent.pt")
+    image = np.full((128, 216, 3), 255, dtype=np.uint8)
+    cv2.circle(image, (104, 74), 10, (0, 0, 0), -1)
+    cv2.circle(image, (167, 49), 10, (0, 0, 0), -1)
+    data = cv2.imencode(".png", image)[1].tobytes()
+    project = Project(scale=2)
+    symbols = detector.detect_symbols(data, project, tiles=[
+        {"x": 0, "y": 0, "w": 128, "h": 128},
+        {"x": 88, "y": 0, "w": 128, "h": 128},
+    ])
+
+    assert len(symbols) == 2
+    assert sorted((symbol.x, symbol.y) for symbol in symbols) == [(209, 149), (335, 99)]
+    assert project.meta["detector_tiles"] == 2

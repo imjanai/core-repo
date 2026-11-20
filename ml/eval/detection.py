@@ -37,6 +37,8 @@ class DrawingErrors:
     wrong_types: list[dict]
     detector: str
     vlm: str
+    classifier: dict = field(default_factory=dict)
+    tile_count: int = 0
 
     @property
     def corrections(self) -> int:

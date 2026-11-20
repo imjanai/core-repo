@@ -10,11 +10,13 @@ from math import isfinite
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import numpy as np
 from PIL import Image
 from pydantic import BaseModel, Field
 
 from ml.data.split import hash_project_split
 from packages.schema import Project, SymbolType
+from packages.vision.classifier import BACKGROUND, symbol_crop
 
 
 class ReviewedDrawing(BaseModel):
@@ -22,6 +24,7 @@ class ReviewedDrawing(BaseModel):
     reviewed: Path
     project_family: str = Field(min_length=1)
     allow_training: bool = False
+    background_px: list[tuple[float, float]] = Field(default_factory=list)
 
 
 class CropManifest(BaseModel):
@@ -66,33 +69,35 @@ def export_crops(manifest_path: Path, output: Path, crop_size: int = 96) -> dict
             if project.file_type.value != "image" or not isfinite(project.scale) or project.scale <= 0:
                 raise ValueError(f"{item.reviewed}: expected raster Project annotations with a positive scale")
             with Image.open(manifest_path.parent / item.drawing) as source:
-                image = source.convert("RGB")
+                image = np.asarray(source.convert("RGB"))
+            height, width = image.shape[:2]
+            samples = []
+            positions = [(symbol.x / project.scale, symbol.y / project.scale) for symbol in project.symbols]
+            for symbol, (px, py) in zip(project.symbols, positions):
+                if symbol.type == SymbolType.ONBEKEND:
+                    counts["unknown"] += 1
+                else:
+                    samples.append((symbol.type.value, px, py))
+            for px, py in item.background_px:
+                if any(abs(px - x) <= crop_size / 2 and abs(py - y) <= crop_size / 2 for x, y in positions):
+                    raise ValueError(f"{item.drawing}: background crop contains an annotated symbol center")
+                samples.append((BACKGROUND, px, py))
             with (staging / f"{split}.jsonl").open("a", encoding="utf-8") as stream:
-                for index, symbol in enumerate(project.symbols):
-                    if symbol.type == SymbolType.ONBEKEND:
-                        counts["unknown"] += 1
-                        continue
-                    px, py = symbol.x / project.scale, symbol.y / project.scale
-                    if not (0 <= px < image.width and 0 <= py < image.height):
-                        raise ValueError(f"{item.reviewed}: symbol {index + 1} lies outside the raster")
-                    left, top = round(px) - crop_size // 2, round(py) - crop_size // 2
-                    crop = image.crop((
-                        max(0, left), max(0, top),
-                        min(image.width, left + crop_size), min(image.height, top + crop_size),
-                    ))
-                    canvas = Image.new("RGB", (crop_size, crop_size), "white")
-                    canvas.paste(crop, (max(0, -left), max(0, -top)))
-                    relative = Path(split, symbol.type.value, f"{digest}-{index}.png")
+                for index, (label, px, py) in enumerate(samples):
+                    if not (0 <= px < width and 0 <= py < height):
+                        raise ValueError(f"{item.drawing}: crop {index + 1} lies outside the raster")
+                    crop = symbol_crop(image, px, py, crop_size)
+                    relative = Path(split, label, f"{digest}-{index}.png")
                     target = staging / relative
                     target.parent.mkdir(parents=True, exist_ok=True)
-                    canvas.save(target)
+                    Image.fromarray(crop).save(target)
                     record = {
                         "image": (output.resolve() / relative).as_posix(),
                         "project_family": item.project_family,
-                        "label": symbol.type.value,
+                        "label": label,
                         "conversations": [
                             {"from": "human", "value": "<image> Welk elektrotechnisch symbool staat in het midden?"},
-                            {"from": "gpt", "value": symbol.type.value},
+                            {"from": "gpt", "value": label},
                         ],
                     }
                     stream.write(json.dumps(record, ensure_ascii=False) + "\n")
